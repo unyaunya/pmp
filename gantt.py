@@ -1,9 +1,10 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 
+import json
 import sys
 from PyQt4 import QtGui
-from PyQt4.QtGui import QWidget, QVBoxLayout
+from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar
 from pygantt import TaskModel, Task, GanttFrame
 
 def SampleModel():
@@ -33,6 +34,7 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__(parent)
         self._setup_gui()
 
+
     def _setup_gui(self):
         self.setWindowTitle("がんと")
         #-- GUI部品の作成
@@ -46,6 +48,8 @@ class MainWindow(QtGui.QMainWindow):
         self.main_frame = QWidget()
         self.main_frame.setLayout(main_layout)
         self.setCentralWidget(self.main_frame)
+        self.createActions()
+        self.createMenus()
         #-- シグナル/スロットの接続
         hello_button.clicked.connect(self.on_click)
         check_box.stateChanged.connect(self.print_state)
@@ -60,6 +64,40 @@ class MainWindow(QtGui.QMainWindow):
             print("Unchecked")
         else:
             print("Checked")
+
+    def createActions(self):
+        self.actions = {}
+        self.actions['load'] = QAction("Load", self)
+        self.actions['load'].triggered.connect(self.loadAction)
+        self.actions['save'] = QAction("Save", self)
+        self.actions['save'].triggered.connect(self.saveAction)
+        self.actions['exit'] = QAction("Exit", self)
+        self.actions['exit'].triggered.connect(self.exitAction)
+
+    def createMenus(self):
+        menuBar = self.menuBar()
+        if True:
+            fileMenu = menuBar.addMenu("Filew")
+            fileMenu.addAction(self.actions['load'])
+            fileMenu.addAction(self.actions['save'])
+            fileMenu.addSeparator()
+            fileMenu.addAction("Exi")
+            editMenu = menuBar.addMenu("Edit")
+            editMenu.addAction(self.actions['load'])
+            editMenu.addAction(self.actions['save'])
+            editMenu.addSeparator()
+            editMenu.addAction(self.actions['exit'])
+
+    def loadAction(self):
+        print("load")
+
+    def saveAction(self):
+        print("save")
+        print(json.dumps(SampleModel()))
+
+    def exitAction(self):
+        sys.exit()
+
 
 def main():
     app = QtGui.QApplication(sys.argv)

@@ -269,8 +269,9 @@ class GanttWidget(Widget_):
             painter.drawRect(progressRect)
 
     def drawItemBackground(self, painter, itemRect):
-        self.cdi.drawItemBackground(painter, itemRect.top(), itemRect.bottom(), self.pen4chartBoundary)
-
+        #this methhod is called outside paintEvent in MacOS X
+        if self.cdi is not None:
+            self.cdi.drawItemBackground(painter, itemRect.top(), itemRect.bottom(), self.pen4chartBoundary)
 
 class GanttFrame(QtGui.QSplitter):
     def __init__ (self, parent = None, model = None):

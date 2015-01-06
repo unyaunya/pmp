@@ -117,8 +117,8 @@ class CalendarDrawingInfo():
 
 
 class GanttHeaderView(QtGui.QHeaderView):
-    def __init__(self, ganttWidget, parent = None):
-        super(GanttHeaderView, self).__init__ (Qt.Horizontal, parent)
+    def __init__(self, ganttWidget):
+        super(GanttHeaderView, self).__init__ (Qt.Horizontal, ganttWidget)
         self.ganttWidget = ganttWidget
         color = QColor(Qt.lightGray)
         color.setAlpha(128)
@@ -126,18 +126,12 @@ class GanttHeaderView(QtGui.QHeaderView):
         self.pen4text = QPen(Qt.darkGray)
         self.sectionResized.connect(self._adjustSection)
 
-    def _adjustSection(self):
-        """チャート部を、Widgetの端まで広げる"""
-        width = self.width()
-        for i in range(self.count()):
-            if i != COLUMN_CHART:
-                width -= self.sectionSize(i)
-        if width >= 0:
-            self.resizeSection(COLUMN_CHART, width)
-
     def resizeEvent(self, event):
         super(GanttHeaderView, self).resizeEvent(event)
         self._adjustSection()
+
+    def _adjustSection(self):
+        self.ganttWidget.getChartScrollBar().adjustSection()
 
     def sizeHint(self):
         sh = super(GanttHeaderView, self).sizeHint()
@@ -155,19 +149,39 @@ class GanttHeaderView(QtGui.QHeaderView):
         cdi.prepare(painter, rect, self.ganttWidget.ganttModel.start, self.ganttWidget.ganttModel.end + _ONEDAY)
         cdi.drawHeader(painter, rect, self.pen4line, self.pen4text)
 
+class ChartScrollBar(QtGui.QScrollBar):
+    """チャート部用のスクロールバーを作成する"""
+
+    def __init__(self, ganttWidget):
+        super(ChartScrollBar, self).__init__(Qt.Horizontal, ganttWidget)
+        self.ganttWidget = ganttWidget
+        self.valueChanged.connect(print)
+
+    def adjustSection(self):
+        """チャート部を、Widgetの端まで広げる"""
+        header = self.ganttWidget.header()
+        if header is None:
+            return
+        width = header.width()
+        for i in range(header.count()):
+            if i != COLUMN_CHART:
+                width -= header.sectionSize(i)
+        if width >= 0:
+            header.resizeSection(COLUMN_CHART, width)
+
 
 class Widget_(QtGui.QTreeWidget):
     def __init__(self, settings = Settings(), model = None):
         super(Widget_, self).__init__()
         self.settings = settings
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self._csb = ChartScrollBar(self)
         self.setHeader(GanttHeaderView(self))
         self.ganttModel = model
         self.pen4chartBoundary = QPen(QColor(128,128,128,128))
         self.brush4chartFill = QBrush(QColor(0,64,64,128))
         self.brush4chartFillProgress = QBrush(QColor(255,0,0,128))
         self.cdi = None
-        self._csb = self._createChartScrollBar()
 
     @property
     def ganttModel(self):
@@ -196,7 +210,7 @@ class Widget_(QtGui.QTreeWidget):
     def paintEvent(self, e):
         super(Widget_, self).paintEvent(e)
         rect = e.rect()
-        print(rect)
+        #print(rect)
         left = 0
         for i in range(COLUMN_CHART):
             left += self.columnWidth(i)
@@ -245,11 +259,6 @@ class Widget_(QtGui.QTreeWidget):
         #this methhod is called outside paintEvent in MacOS X
         if self.cdi is not None:
             self.cdi.drawItemBackground(painter, itemRect.top(), itemRect.bottom(), self.pen4chartBoundary)
-
-    def _createChartScrollBar(self):
-        """チャート部用のスクロールバーを作成する"""
-        self._csb = QtGui.QScrollBar(Qt.Horizontal, self)
-        return self._csb
 
     def getChartScrollBar(self):
         """チャート部用のスクロールバーを取得する"""

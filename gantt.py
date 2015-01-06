@@ -51,7 +51,8 @@ class MainWindow(QtGui.QMainWindow):
         check_box = QtGui.QCheckBox("Check Box")
         #-- GUI部品のレイアウト
         main_layout = QVBoxLayout()
-        self.ganttFrame = GanttFrame(model = SampleModel())
+        self.ganttFrame = GanttFrame()
+        self.ganttFrame.ganttModel = SampleModel()
         main_layout.addWidget(self.ganttFrame)
         main_layout.addWidget(hello_button)
         main_layout.addWidget(check_box)
@@ -75,28 +76,30 @@ class MainWindow(QtGui.QMainWindow):
         else:
             print("Checked")
 
+    def _createAction(self, name, func):
+        action = QAction(name, self)
+        action.triggered.connect(func)
+        self.actions[name] = action
+
     def createActions(self):
         self.actions = {}
-        self.actions['load'] = QAction("Load", self)
-        self.actions['load'].triggered.connect(self.loadAction)
-        self.actions['save'] = QAction("Save", self)
-        self.actions['save'].triggered.connect(self.saveAction)
-        self.actions['exit'] = QAction("Exit", self)
-        self.actions['exit'].triggered.connect(self.exitAction)
+        self._createAction('Load', self.loadAction)
+        self._createAction('Save', self.saveAction)
+        self._createAction('Exit', self.exitAction)
+        self._createAction('Insert', self.insertAction)
+        self._createAction('Remove', self.removeAction)
 
     def createMenus(self):
         menuBar = self.menuBar()
         if True:
             fileMenu = menuBar.addMenu("File")
-            fileMenu.addAction(self.actions['load'])
-            fileMenu.addAction(self.actions['save'])
+            fileMenu.addAction(self.actions['Load'])
+            fileMenu.addAction(self.actions['Save'])
             fileMenu.addSeparator()
-            fileMenu.addAction("Exit")
+            fileMenu.addAction(self.actions['Exit'])
             editMenu = menuBar.addMenu("Edit")
-            editMenu.addAction(self.actions['load'])
-            editMenu.addAction(self.actions['save'])
-            editMenu.addSeparator()
-            editMenu.addAction(self.actions['exit'])
+            editMenu.addAction(self.actions['Insert'])
+            editMenu.addAction(self.actions['Remove'])
 
     def loadAction(self):
         fileName = QFileDialog.getOpenFileName(self, 'ファイルを開く', os.getcwd())
@@ -111,6 +114,11 @@ class MainWindow(QtGui.QMainWindow):
     def exitAction(self):
         sys.exit()
 
+    def insertAction(self):
+        self.ganttFrame.insertAction()
+
+    def removeAction(self):
+        self.ganttFrame.removeAction()
 
 def main():
     app = QtGui.QApplication(sys.argv)

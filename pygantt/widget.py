@@ -279,11 +279,10 @@ class GanttWidget(Widget_):
             self.cdi.drawItemBackground(painter, itemRect.top(), itemRect.bottom(), self.pen4chartBoundary)
 
 class GanttFrame(QtGui.QSplitter):
-    def __init__ (self, parent = None, model = None):
+    def __init__ (self, parent = None):
         super(GanttFrame, self).__init__(parent)
         self._ganttModel = None
         self.settings = Settings()
-        self.ganttModel = model
 
     @property
     def ganttModel(self):
@@ -314,3 +313,30 @@ class GanttFrame(QtGui.QSplitter):
             self.ganttWidget.ganttModel = model.ganttModel
         self._ganttModel = model
 
+    def _createDefaultItem(self):
+        ni = QtGui.QTreeWidgetItem()
+        ni.setText(0, '(未定義)')
+        ni.setText(1, '2014/12/01')
+        ni.setText(2, '2014/12/31)')
+        return ni
+
+    def insertAction(self):
+        print("insert", self.dataWidget.currentItem())
+        ci = self.dataWidget.currentItem()
+        if ci is None:
+            parent = self.dataWidget.invisibleRootItem()
+            parent.addChild(QtGui.QTreeWidgetItem())
+        else:
+            parent = ci.parent()
+            if parent is None:
+                parent = self.dataWidget.invisibleRootItem()
+            index = parent.indexOfChild(ci)
+            parent.insertChild(index, self._createDefaultItem())
+
+    def removeAction(self):
+        print("remove", self.dataWidget.currentItem())
+        ci = self.dataWidget.currentItem()
+        parent = ci.parent()
+        if parent is None:
+            parent = self.dataWidget.invisibleRootItem()
+        parent.removeChild(ci)

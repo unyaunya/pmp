@@ -3,4 +3,4 @@
 
 from .util import s2dt, DATE_FORMART
 from .model import TaskModel, Task
-from .widget import GanttFrame
+from .widget import GanttWidget

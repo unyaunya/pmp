@@ -10,7 +10,7 @@ from .settings import Settings
 
 DAY_WIDTH = 16
 COLUMN_NAME  = 0
-COLUMN_CHART = 1
+COLUMN_CHART = 4
 CALENDAR_BOTTOM_MARGIN = 3
 CALENDAR_LEFT_MARGIN = 3
 CHART_HEIGHT = 12
@@ -23,16 +23,6 @@ CALENDAR_DAY    = 2
 CALENDAR_BOTTOM = 3
 
 _ONEDAY = timedelta(days=1)
-
-class HeaderView_(QtGui.QHeaderView):
-    def sizeHint(self):
-        sh = super(HeaderView_, self).sizeHint()
-        sh.setHeight(sh.height()*2.4)
-        return sh
-
-class DataHeaderView(HeaderView_):
-    def __init__(self, parent = None):
-        super(DataHeaderView, self).__init__ (Qt.Horizontal, parent)
 
 class CalendarDrawingInfo():
     def __init__(self):
@@ -126,7 +116,7 @@ class CalendarDrawingInfo():
         self.drawCalendarVerticalLine_(painter, CALENDAR_DAY, top, bottom)
 
 
-class GanttHeaderView(HeaderView_):
+class GanttHeaderView(QtGui.QHeaderView):
     def __init__(self, ganttWidget, parent = None):
         super(GanttHeaderView, self).__init__ (Qt.Horizontal, parent)
         self.ganttWidget = ganttWidget
@@ -134,24 +124,50 @@ class GanttHeaderView(HeaderView_):
         color.setAlpha(128)
         self.pen4line = QPen(color)
         self.pen4text = QPen(Qt.darkGray)
+        self.sectionResized.connect(self._adjustSection)
+
+    def _adjustSection(self):
+        """チャート部を、Widgetの端まで広げる"""
+        width = self.width()
+        for i in range(self.count()):
+            if i != COLUMN_CHART:
+                width -= self.sectionSize(i)
+        if width >= 0:
+            self.resizeSection(COLUMN_CHART, width)
+
+    def resizeEvent(self, event):
+        super(GanttHeaderView, self).resizeEvent(event)
+        self._adjustSection()
+
+    def sizeHint(self):
+        sh = super(GanttHeaderView, self).sizeHint()
+        sh.setHeight(sh.height()*2.4)
+        return sh
 
     def paintSection(self, painter, rect, logicalIndex):
         painter.save()
         super(GanttHeaderView, self).paintSection(painter, rect, logicalIndex)
         painter.restore()
-        #print("paintSection", rect, logicalIndex)
-        if logicalIndex != 1:
+        if logicalIndex != COLUMN_CHART:
             return
+        #print("paintSection", rect, logicalIndex)
         cdi = CalendarDrawingInfo()
         cdi.prepare(painter, rect, self.ganttWidget.ganttModel.start, self.ganttWidget.ganttModel.end + _ONEDAY)
         cdi.drawHeader(painter, rect, self.pen4line, self.pen4text)
 
 
 class Widget_(QtGui.QTreeWidget):
-    def __init__(self, settings):
+    def __init__(self, settings = Settings(), model = None):
         super(Widget_, self).__init__()
         self.settings = settings
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHeader(GanttHeaderView(self))
+        self.ganttModel = model
+        self.pen4chartBoundary = QPen(QColor(128,128,128,128))
+        self.brush4chartFill = QBrush(QColor(0,64,64,128))
+        self.brush4chartFillProgress = QBrush(QColor(255,0,0,128))
+        self.cdi = None
+        self._csb = self._createChartScrollBar()
 
     @property
     def ganttModel(self):
@@ -168,61 +184,9 @@ class Widget_(QtGui.QTreeWidget):
         for i in range(self.topLevelItemCount()):
             self.expandItem(self.topLevelItem(i))
 
-    def _collapse(self, index):
-        mip = self.modelIndexPath(index)
-        mip.reverse()
-        tv_index = self.modelIndex_(index)
-        super(Widget_, self).collapse(tv_index)
-
-    def collapse(self, index):
-        super(Widget_, self).collapse(self.modelIndex_(index))
-
-    def expand(self, index):
-        super(Widget_, self).expand(self.modelIndex_(index))
-
-    def modelIndex_(self, index):
-        mip = self.modelIndexPath(index)
-        mip.reverse()
-        mi = QModelIndex()
-        for i in mip:
-            mi = self.model().index(i[0], i[1], mi)
-        return mi
-
-    @staticmethod
-    def modelIndexPath(index):
-        path = []
-        i = index
-        while (i.isValid()):
-            path.append((i.row(), i.column()))
-            i = i.parent()
-        return path
-
-class DataWidget(Widget_):
-    def __init__(self, settings, model = None):
-        super(DataWidget, self).__init__(settings)
-        self.setHeader(DataHeaderView(self))
-        self.ganttModel = model
-        self.setColumnWidth(3, 100)
-        self.setMaximumWidth(400)
-
-    def drawBranches (self, painter, rect, index):
-        super(DataWidget, self).drawBranches (painter, rect, index)
-        y = (rect.top()+rect.bottom())/2
-        painter.drawLine(rect.right()-20, y, rect.right(), y)
-
-class GanttWidget(Widget_):
-    def __init__(self, settings, model = None):
-        super(GanttWidget, self).__init__(settings)
-        self.setHeader(GanttHeaderView(self))
-        self.ganttModel = model
-        self.setColumnWidth(COLUMN_NAME, 0)
-        self.setColumnWidth(COLUMN_CHART, self.preferableWidth())
-        self.pen4chartBoundary = QPen(QColor(128,128,128,128))
-        self.brush4chartFill = QBrush(QColor(0,64,64,128))
-        self.brush4chartFillProgress = QBrush(QColor(255,0,0,128))
-        self.cdi = None
-
     def preferableWidth(self):
+        if self.ganttModel is None:
+            return 0
         return self.xpos(self.ganttModel.end+_ONEDAY)
 
     def xpos(self, dt):
@@ -230,20 +194,24 @@ class GanttWidget(Widget_):
         return tdelta.days * DAY_WIDTH
 
     def paintEvent(self, e):
-        super(GanttWidget, self).paintEvent(e)
-        print(e.rect())
+        super(Widget_, self).paintEvent(e)
+        rect = e.rect()
+        print(rect)
+        left = 0
+        for i in range(COLUMN_CHART):
+            left += self.columnWidth(i)
+        rect.setLeft(left)
         self.cdi = CalendarDrawingInfo()
-        self.cdi.prepare(None, e.rect(), self.ganttModel.start, self.ganttModel.end + _ONEDAY)
-
+        self.cdi.prepare(None, rect, self.ganttModel.start, self.ganttModel.end + _ONEDAY)
 
     def drawRow(self, painter, options, index):
         """ガントチャート1行を描画する"""
-        super(GanttWidget, self).drawRow(painter, options, index)
+        super(Widget_, self).drawRow(painter, options, index)
         item = self.itemFromIndex(index)
         task = item.data(COLUMN_CHART, Qt.UserRole)
         #rect = self.visualRect(index)
         itemRect = self.visualItemRect(item)
-        print("\tdrawRow:", itemRect)
+        #print("\tdrawRow:", itemRect)
         #print("\tdrawRow:", self.visualItemRect(item))
         chartRect = self._chartRect(task, itemRect)
         self.drawItemBackground(painter, itemRect)
@@ -278,40 +246,39 @@ class GanttWidget(Widget_):
         if self.cdi is not None:
             self.cdi.drawItemBackground(painter, itemRect.top(), itemRect.bottom(), self.pen4chartBoundary)
 
-class GanttFrame(QtGui.QSplitter):
-    def __init__ (self, parent = None):
-        super(GanttFrame, self).__init__(parent)
-        self._ganttModel = None
-        self.settings = Settings()
+    def _createChartScrollBar(self):
+        """チャート部用のスクロールバーを作成する"""
+        self._csb = QtGui.QScrollBar(Qt.Horizontal, self)
+        return self._csb
 
-    @property
-    def ganttModel(self):
-        return self._ganttModel
+    def getChartScrollBar(self):
+        """チャート部用のスクロールバーを取得する"""
+        return self._csb
 
-    @ganttModel.setter
-    def ganttModel(self, model):
-        if model is None:
-            return
-        if self.ganttModel is None:
-            self.dataWidget = DataWidget(self.settings, model.dataModel)
-            self.ganttWidget = GanttWidget(self.settings, model.ganttModel)
-            self.addWidget(self.dataWidget)
-            self.addWidget(self.ganttWidget)
-            #-- シグナル/スロットの接続
-            self.dataWidget.collapsed.connect(self.ganttWidget.collapse)
-            self.ganttWidget.collapsed.connect(self.dataWidget.collapse)
-            self.dataWidget.expanded.connect(self.ganttWidget.expand)
-            self.ganttWidget.expanded.connect(self.dataWidget.expand)
-            dw_vsb = self.dataWidget.verticalScrollBar()
-            gw_vsb = self.ganttWidget.verticalScrollBar()
-            dw_vsb.valueChanged .connect(gw_vsb.setSliderPosition )
-            gw_vsb.valueChanged .connect(dw_vsb.setSliderPosition )
+class GanttWidget(Widget_):
+    def __init__(self, settings = Settings(), model = None):
+        super(GanttWidget, self).__init__(settings)
+
+    def insertAction(self):
+        print("insert", self.currentItem())
+        ci = self.currentItem()
+        if ci is None:
+            parent = self.invisibleRootItem()
+            parent.addChild(QtGui.QTreeWidgetItem())
         else:
-            self.dataWidget.clear()
-            self.ganttWidget.clear()
-            self.dataWidget.ganttModel = model.dataModel
-            self.ganttWidget.ganttModel = model.ganttModel
-        self._ganttModel = model
+            parent = ci.parent()
+            if parent is None:
+                parent = self.invisibleRootItem()
+            index = parent.indexOfChild(ci)
+            parent.insertChild(index, self._createDefaultItem())
+
+    def removeAction(self):
+        print("remove", self.currentItem())
+        ci = self.currentItem()
+        parent = ci.parent()
+        if parent is None:
+            parent = self.invisibleRootItem()
+        parent.removeChild(ci)
 
     def _createDefaultItem(self):
         ni = QtGui.QTreeWidgetItem()
@@ -319,24 +286,3 @@ class GanttFrame(QtGui.QSplitter):
         ni.setText(1, '2014/12/01')
         ni.setText(2, '2014/12/31)')
         return ni
-
-    def insertAction(self):
-        print("insert", self.dataWidget.currentItem())
-        ci = self.dataWidget.currentItem()
-        if ci is None:
-            parent = self.dataWidget.invisibleRootItem()
-            parent.addChild(QtGui.QTreeWidgetItem())
-        else:
-            parent = ci.parent()
-            if parent is None:
-                parent = self.dataWidget.invisibleRootItem()
-            index = parent.indexOfChild(ci)
-            parent.insertChild(index, self._createDefaultItem())
-
-    def removeAction(self):
-        print("remove", self.dataWidget.currentItem())
-        ci = self.dataWidget.currentItem()
-        parent = ci.parent()
-        if parent is None:
-            parent = self.dataWidget.invisibleRootItem()
-        parent.removeChild(ci)

@@ -22,9 +22,13 @@ class TaskModel(Task):
     def load(path):
         with open(path, mode='r', encoding='utf-8') as f:
             model = json.load(f, object_hook=Task.from_json)
-            model.dataModel = DataModel(model)
             model.ganttModel = GanttModel(model)
             return model
+
+    def headerLabels(self):
+        """一時的"""
+        return ["項目名","開始日","終了日","担当者"]
+
 
 class _TaskTreeModel(object):
     def __init__(self, model):
@@ -56,21 +60,14 @@ class _TaskTreeModel(object):
     def end(self):
         return self.model.end
 
-class DataModel(_TaskTreeModel):
-    def headerLabels(self):
-        return ["項目名","開始日","終了日","担当者"]
-
-    def setTreeWidgetItem(self, item, task):
-        super(DataModel, self).setTreeWidgetItem(item, task)
-        item.setText(0, task.name)
-        item.setText(1, dt2s(task.start))
-        item.setText(2, dt2s(task.end))
-
 class GanttModel(_TaskTreeModel):
     def headerLabels(self):
-        return ["hidden-name", ""]
+        return ["項目名","開始日","終了日","担当者", ""]
 
     def setTreeWidgetItem(self, item, task):
         super(GanttModel, self).setTreeWidgetItem(item, task)
         item.setText(0, task.name)
-        item.setData(1, Qt.UserRole, task)
+        item.setText(1, dt2s(task.start))
+        item.setText(2, dt2s(task.end))
+        item.setText(3, "unknown")
+        item.setData(4, Qt.UserRole, task)

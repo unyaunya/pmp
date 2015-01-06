@@ -5,7 +5,7 @@ import os, json
 import sys
 from PyQt4 import QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QFileDialog
-from pygantt import TaskModel, Task, GanttFrame
+from pygantt import TaskModel, Task, GanttWidget
 
 def __SampleModel():
     model = TaskModel('サンプル工事', '2014/11/01', '2015/09/30')
@@ -43,7 +43,6 @@ class MainWindow(QtGui.QMainWindow):
         super(MainWindow, self).__init__(parent)
         self._setup_gui()
 
-
     def _setup_gui(self):
         self.setWindowTitle("がんと")
         #-- GUI部品の作成
@@ -51,30 +50,18 @@ class MainWindow(QtGui.QMainWindow):
         check_box = QtGui.QCheckBox("Check Box")
         #-- GUI部品のレイアウト
         main_layout = QVBoxLayout()
-        self.ganttFrame = GanttFrame()
-        self.ganttFrame.ganttModel = SampleModel()
-        main_layout.addWidget(self.ganttFrame)
-        main_layout.addWidget(hello_button)
-        main_layout.addWidget(check_box)
+        self.ganttWidget = GanttWidget()
+        self.ganttWidget.ganttModel = SampleModel().ganttModel
+        main_layout.addWidget(self.ganttWidget)
+        main_layout.addWidget(self.ganttWidget.getChartScrollBar())
         self.main_frame = QWidget()
         self.main_frame.setLayout(main_layout)
         self.setCentralWidget(self.main_frame)
         self.createActions()
         self.createMenus()
         #-- シグナル/スロットの接続
-        hello_button.clicked.connect(self.on_click)
-        check_box.stateChanged.connect(self.print_state)
         #
         self.resize(1024, 768)
-
-    def on_click(self):
-        print("Hello World")
-
-    def print_state(self, state):
-        if state == 0:
-            print("Unchecked")
-        else:
-            print("Checked")
 
     def _createAction(self, name, func):
         action = QAction(name, self)
@@ -115,10 +102,10 @@ class MainWindow(QtGui.QMainWindow):
         sys.exit()
 
     def insertAction(self):
-        self.ganttFrame.insertAction()
+        self.ganttWidget.insertAction()
 
     def removeAction(self):
-        self.ganttFrame.removeAction()
+        self.ganttWidget.removeAction()
 
 def main():
     app = QtGui.QApplication(sys.argv)

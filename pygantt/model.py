@@ -5,12 +5,26 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import Qt, QVariant
 from .util import s2dt, dt2s
 from .task import Task
+import json, codecs
 
 class TaskModel(Task):
     def __init__(self, name="(未定)", start = None, end = None):
         super(TaskModel, self).__init__(name, start, end)
         self.dataModel = DataModel(self)
         self.ganttModel = GanttModel(self)
+
+    @staticmethod
+    def dump(obj, path):
+        with codecs.open(path, 'w', 'utf8') as f:
+            json.dump(obj, f, indent=2, default=Task.to_json, ensure_ascii=False)
+
+    @staticmethod
+    def load(path):
+        with open(path, mode='r', encoding='utf-8') as f:
+            model = json.load(f, object_hook=Task.from_json)
+            model.dataModel = DataModel(model)
+            model.ganttModel = GanttModel(model)
+            return model
 
 class _TaskTreeModel(object):
     def __init__(self, model):

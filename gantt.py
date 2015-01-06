@@ -1,13 +1,13 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 
-import json
+import os, json
 import sys
 from PyQt4 import QtGui
-from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar
+from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QFileDialog
 from pygantt import TaskModel, Task, GanttFrame
 
-def SampleModel():
+def __SampleModel():
     model = TaskModel('サンプル工事', '2014/11/01', '2015/09/30')
     task = Task('たすく1', '2014/11/01', '2014/12/01', 1000, 600)
     task.add(Task('たすく1-1', '2014/12/01', '2015/03/01', 400, 200))
@@ -27,6 +27,15 @@ def SampleModel():
     task.add(Task('たすく3-2', '2014/11/01', '2014/12/01'))
     task.add(Task('たすく3-3', '2014/11/01', '2014/12/01'))
     model.add(task)
+    import os
+    print(TaskModel.dump(model, os.getcwd()+'\\hoge.json.txt'))
+    return model
+
+def SampleModel():
+    import os
+    path = os.getcwd()+'\\hoge.json.txt'
+    model = TaskModel.load(path)
+    TaskModel.dump(model, os.getcwd()+'\\hoge.json.txt.bak.txt')
     return model
 
 class MainWindow(QtGui.QMainWindow):
@@ -42,7 +51,8 @@ class MainWindow(QtGui.QMainWindow):
         check_box = QtGui.QCheckBox("Check Box")
         #-- GUI部品のレイアウト
         main_layout = QVBoxLayout()
-        main_layout.addWidget(GanttFrame(model = SampleModel()))
+        self.ganttFrame = GanttFrame(model = SampleModel())
+        main_layout.addWidget(self.ganttFrame)
         main_layout.addWidget(hello_button)
         main_layout.addWidget(check_box)
         self.main_frame = QWidget()
@@ -77,11 +87,11 @@ class MainWindow(QtGui.QMainWindow):
     def createMenus(self):
         menuBar = self.menuBar()
         if True:
-            fileMenu = menuBar.addMenu("Filew")
+            fileMenu = menuBar.addMenu("File")
             fileMenu.addAction(self.actions['load'])
             fileMenu.addAction(self.actions['save'])
             fileMenu.addSeparator()
-            fileMenu.addAction("Exi")
+            fileMenu.addAction("Exit")
             editMenu = menuBar.addMenu("Edit")
             editMenu.addAction(self.actions['load'])
             editMenu.addAction(self.actions['save'])
@@ -89,7 +99,10 @@ class MainWindow(QtGui.QMainWindow):
             editMenu.addAction(self.actions['exit'])
 
     def loadAction(self):
-        print("load")
+        fileName = QFileDialog.getOpenFileName(self, 'ファイルを開く', os.getcwd())
+        print("load %s" % fileName)
+        model = TaskModel.load(fileName)
+        self.ganttFrame.ganttModel = model
 
     def saveAction(self):
         print("save")

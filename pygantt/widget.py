@@ -143,7 +143,7 @@ class GanttHeaderView(HeaderView_):
         if logicalIndex != 1:
             return
         cdi = CalendarDrawingInfo()
-        cdi.prepare(painter, rect, self.ganttWidget.model2.start, self.ganttWidget.model2.end + _ONEDAY)
+        cdi.prepare(painter, rect, self.ganttWidget.ganttModel.start, self.ganttWidget.ganttModel.end + _ONEDAY)
         cdi.drawHeader(painter, rect, self.pen4line, self.pen4text)
 
 
@@ -153,8 +153,13 @@ class Widget_(QtGui.QTreeWidget):
         self.settings = settings
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
-    def setModel2(self, model):
-        self.model2 = model
+    @property
+    def ganttModel(self):
+        return self._ganttModel
+
+    @ganttModel.setter
+    def ganttModel(self, model):
+        self._ganttModel = model
         if model is None:
             return
         self.setHeaderLabels(model.headerLabels())
@@ -196,7 +201,7 @@ class DataWidget(Widget_):
     def __init__(self, settings, model = None):
         super(DataWidget, self).__init__(settings)
         self.setHeader(DataHeaderView(self))
-        self.setModel2(model)
+        self.ganttModel = model
         self.setColumnWidth(3, 100)
         self.setMaximumWidth(400)
 
@@ -209,7 +214,7 @@ class GanttWidget(Widget_):
     def __init__(self, settings, model = None):
         super(GanttWidget, self).__init__(settings)
         self.setHeader(GanttHeaderView(self))
-        self.setModel2(model)
+        self.ganttModel = model
         self.setColumnWidth(COLUMN_NAME, 0)
         self.setColumnWidth(COLUMN_CHART, self.preferableWidth())
         self.pen4chartBoundary = QPen(QColor(128,128,128,128))
@@ -218,17 +223,17 @@ class GanttWidget(Widget_):
         self.cdi = None
 
     def preferableWidth(self):
-        return self.xpos(self.model2.end+_ONEDAY)
+        return self.xpos(self.ganttModel.end+_ONEDAY)
 
     def xpos(self, dt):
-        tdelta = dt - self.model2.start
+        tdelta = dt - self.ganttModel.start
         return tdelta.days * DAY_WIDTH
 
     def paintEvent(self, e):
         super(GanttWidget, self).paintEvent(e)
         print(e.rect())
         self.cdi = CalendarDrawingInfo()
-        self.cdi.prepare(None, e.rect(), self.model2.start, self.model2.end + _ONEDAY)
+        self.cdi.prepare(None, e.rect(), self.ganttModel.start, self.ganttModel.end + _ONEDAY)
 
 
     def drawRow(self, painter, options, index):
@@ -276,18 +281,36 @@ class GanttWidget(Widget_):
 class GanttFrame(QtGui.QSplitter):
     def __init__ (self, parent = None, model = None):
         super(GanttFrame, self).__init__(parent)
+        self._ganttModel = None
         self.settings = Settings()
-        self.dataWidget = DataWidget(self.settings, model.dataModel)
-        self.ganttWidget = GanttWidget(self.settings, model.ganttModel)
-        self.addWidget(self.dataWidget)
-        self.addWidget(self.ganttWidget)
-        #-- シグナル/スロットの接続
-        self.dataWidget.collapsed.connect(self.ganttWidget.collapse)
-        self.ganttWidget.collapsed.connect(self.dataWidget.collapse)
-        self.dataWidget.expanded.connect(self.ganttWidget.expand)
-        self.ganttWidget.expanded.connect(self.dataWidget.expand)
-        dw_vsb = self.dataWidget.verticalScrollBar()
-        gw_vsb = self.ganttWidget.verticalScrollBar()
-        dw_vsb.valueChanged .connect(gw_vsb.setSliderPosition )
-        gw_vsb.valueChanged .connect(dw_vsb.setSliderPosition )
-        #check_box.stateChanged.connect(self.print_state)
+        self.ganttModel = model
+
+    @property
+    def ganttModel(self):
+        return self._ganttModel
+
+    @ganttModel.setter
+    def ganttModel(self, model):
+        if model is None:
+            return
+        if self.ganttModel is None:
+            self.dataWidget = DataWidget(self.settings, model.dataModel)
+            self.ganttWidget = GanttWidget(self.settings, model.ganttModel)
+            self.addWidget(self.dataWidget)
+            self.addWidget(self.ganttWidget)
+            #-- シグナル/スロットの接続
+            self.dataWidget.collapsed.connect(self.ganttWidget.collapse)
+            self.ganttWidget.collapsed.connect(self.dataWidget.collapse)
+            self.dataWidget.expanded.connect(self.ganttWidget.expand)
+            self.ganttWidget.expanded.connect(self.dataWidget.expand)
+            dw_vsb = self.dataWidget.verticalScrollBar()
+            gw_vsb = self.ganttWidget.verticalScrollBar()
+            dw_vsb.valueChanged .connect(gw_vsb.setSliderPosition )
+            gw_vsb.valueChanged .connect(dw_vsb.setSliderPosition )
+        else:
+            self.dataWidget.clear()
+            self.ganttWidget.clear()
+            self.dataWidget.ganttModel = model.dataModel
+            self.ganttWidget.ganttModel = model.ganttModel
+        self._ganttModel = model
+

@@ -179,7 +179,7 @@ class ChartScrollBar(QtGui.QScrollBar):
         self.setMaximum(self.ganttWidget.preferableWidth() - self.ganttWidget.header().sectionSize(COLUMN_CHART))
 
     def adjustScrollPosition(self, value):
-        print("adjustScrollPosition", value, self.updatesEnabled())
+        #print("adjustScrollPosition", value, self.updatesEnabled())
         #self.ganttWidget.paintEvent(QtGui.QPaintEvent(QRect(0,0,1004,639)))
         self.ganttWidget.header().headerDataChanged(Qt.Horizontal, COLUMN_CHART, COLUMN_CHART)
         self.ganttWidget.headerItem().emitDataChanged()
@@ -198,6 +198,7 @@ class Widget_(QtGui.QTreeWidget):
         self.brush4chartFill = QBrush(QColor(0,64,64,128))
         self.brush4chartFillProgress = QBrush(QColor(255,0,0,128))
         self.cdi = None
+        self.setHeaderLabels(["項目名","開始日","終了日","担当者", ""])
 
     @property
     def ganttModel(self):
@@ -208,7 +209,6 @@ class Widget_(QtGui.QTreeWidget):
         self._ganttModel = model
         if model is None:
             return
-        self.setHeaderLabels(model.headerLabels())
         self.addTopLevelItems(model.treeItems())
         #
         for i in range(self.topLevelItemCount()):
@@ -225,7 +225,7 @@ class Widget_(QtGui.QTreeWidget):
 
     def paintEvent(self, e):
         rect = e.rect()
-        print("paintEvnt", rect)
+        #print("paintEvnt", rect)
         rect.setLeft(self.columnViewportPosition(COLUMN_CHART))
         self.cdi = CalendarDrawingInfo()
         self.cdi.prepare(None, rect, self.ganttModel.start, self.ganttModel.end + _ONEDAY)
@@ -238,7 +238,7 @@ class Widget_(QtGui.QTreeWidget):
         #print(self.visualRect(index))
         itemRect = self.visualRect(index.sibling(index.row(), COLUMN_CHART))
         #itemRect = self.visualItemRect(item)
-        print("\tdrawRow:", itemRect)
+        #print("\tdrawRow:", itemRect)
         painter.setClipRect(itemRect)
         painter.translate(-self.getChartScrollBar().value(), 0)
         #----

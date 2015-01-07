@@ -4,7 +4,6 @@
 import uuid
 from .util import s2dt, dt
 
-
 class Task(object):
     """Taskクラス"""
 
@@ -16,39 +15,6 @@ class Task(object):
         self.pv = pv
         self.ev = ev
         self.children = []
-
-    @staticmethod
-    def to_json(obj):
-        if isinstance(obj, Task):
-            return {'__class__': 'pygantt.Task',
-                    'name': obj.name,
-                    'start': obj.start,
-                    'end': obj.end,
-                    'pv': obj.pv,
-                    'ev': obj.ev,
-                    'children': obj.children,
-                    }
-        if isinstance(obj, dt):
-            return {'__class__': 'datetime.datetime',
-                     '__value__': obj.isoformat()}
-        raise TypeError(repr(obj) + ' is not JSON serializable')
-
-    @staticmethod
-    def from_json(json_object):
-        if '__class__' in json_object:
-            if json_object['__class__'] == 'datetime.datetime':
-                return dt.strptime(json_object['__value__'], '%Y-%m-%dT%H:%M:%S')
-            if json_object['__class__'] == 'pygantt.Task':
-                model = Task(
-                        name = json_object['name'],
-                        start = json_object['start'],
-                        end = json_object['end'],
-                        pv = json_object['pv'],
-                        ev = json_object['ev'],
-                        )
-                model.children = json_object['children']
-                return model
-        return json_object
 
     @property
     def uuid(self):

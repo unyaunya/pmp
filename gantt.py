@@ -27,12 +27,10 @@ def __SampleModel():
     task.add(Task('たすく3-2', '2014/11/01', '2014/12/01'))
     task.add(Task('たすく3-3', '2014/11/01', '2014/12/01'))
     model.add(task)
-    import os
     print(TaskModel.dump(model, os.getcwd()+'\\hoge.json.txt'))
     return model
 
 def SampleModel():
-    import os
     path = os.getcwd()+'\\hoge.json.txt'
     model = TaskModel.load(path)
     TaskModel.dump(model, os.getcwd()+'\\hoge.json.txt.bak.txt')
@@ -42,25 +40,25 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self._setup_gui()
+        self._path = None
+        self._workingDirectory = None
 
     def _setup_gui(self):
-        self.setWindowTitle("がんと")
         #-- GUI部品の作成
-        hello_button = QtGui.QPushButton("波浪わーるど")
-        check_box = QtGui.QCheckBox("Check Box")
+        self.ganttWidget = GanttWidget()
+        self.ganttWidget.ganttModel = SampleModel()
+        self.main_frame = QWidget()
         #-- GUI部品のレイアウト
         main_layout = QVBoxLayout()
-        self.ganttWidget = GanttWidget()
-        self.ganttWidget.ganttModel = SampleModel().ganttModel
         main_layout.addWidget(self.ganttWidget)
         main_layout.addWidget(self.ganttWidget.getChartScrollBar())
-        self.main_frame = QWidget()
         self.main_frame.setLayout(main_layout)
         self.setCentralWidget(self.main_frame)
+        #-- メニュー／アクションの作成
         self.createActions()
         self.createMenus()
-        #-- シグナル/スロットの接続
-        #
+        #-- その他(シグナル/スロットの接続とか)
+        self.setWindowTitle("がんと")
         self.resize(1024, 768)
 
     def _createAction(self, name, func):
@@ -88,11 +86,34 @@ class MainWindow(QtGui.QMainWindow):
             editMenu.addAction(self.actions['Insert'])
             editMenu.addAction(self.actions['Remove'])
 
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    def workingDirectory(self):
+        if self._path is None:
+            self._path = os.getcwd()
+        return self._path
+
+    #---------------------------------------------------------------------------
+    #   アクション
+    #---------------------------------------------------------------------------
     def loadAction(self):
-        fileName = QFileDialog.getOpenFileName(self, 'ファイルを開く', os.getcwd())
+        """ファイルを開く"""
+        fileName = QFileDialog.getOpenFileName(self,
+                        'ファイルを開く', self.workingDirectory)
         print("load %s" % fileName)
-        model = TaskModel.load(fileName)
-        self.ganttFrame.ganttModel = model
+        if len(fileName) <= 0:
+            return
+        try:
+            model = TaskModel.load(fileName)
+            self._workingDirectory = os.path.dirname(fileName)
+            self.ganttWidget.ganttModel = model
+        except :
+            print("Unexpected error:", sys.exc_info())
+            QtGui.QMessageBox.warning(self,
+                "がんと", "<%s>を開けませんでした" % fileName, "OK")
 
     def saveAction(self):
         print("save")

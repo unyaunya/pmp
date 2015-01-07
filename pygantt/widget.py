@@ -124,14 +124,14 @@ class GanttHeaderView(QtGui.QHeaderView):
         color.setAlpha(128)
         self.pen4line = QPen(color)
         self.pen4text = QPen(Qt.darkGray)
-        self.sectionResized.connect(self._adjustSection)
+        self.sectionResized.connect(self._adjustSectionSize)
 
     def resizeEvent(self, event):
         super(GanttHeaderView, self).resizeEvent(event)
-        self._adjustSection()
+        self._adjustSectionSize()
 
-    def _adjustSection(self):
-        self.ganttWidget.getChartScrollBar().adjustSection()
+    def _adjustSectionSize(self):
+        self.ganttWidget.getChartScrollBar().adjustSectionSize()
 
     def sizeHint(self):
         sh = super(GanttHeaderView, self).sizeHint()
@@ -139,15 +139,19 @@ class GanttHeaderView(QtGui.QHeaderView):
         return sh
 
     def paintSection(self, painter, rect, logicalIndex):
-        painter.save()
         super(GanttHeaderView, self).paintSection(painter, rect, logicalIndex)
-        painter.restore()
         if logicalIndex != COLUMN_CHART:
             return
+        painter.save()
         #print("paintSection", rect, logicalIndex)
+        painter.setClipRect(rect)
+        sv = self.ganttWidget.getChartScrollBar().value()
+        painter.translate(-sv, 0)
+        rect.setRight(rect.right() + sv)
         cdi = CalendarDrawingInfo()
         cdi.prepare(painter, rect, self.ganttWidget.ganttModel.start, self.ganttWidget.ganttModel.end + _ONEDAY)
         cdi.drawHeader(painter, rect, self.pen4line, self.pen4text)
+        painter.restore()
 
 class ChartScrollBar(QtGui.QScrollBar):
     """チャート部用のスクロールバーを作成する"""
@@ -155,9 +159,9 @@ class ChartScrollBar(QtGui.QScrollBar):
     def __init__(self, ganttWidget):
         super(ChartScrollBar, self).__init__(Qt.Horizontal, ganttWidget)
         self.ganttWidget = ganttWidget
-        self.valueChanged.connect(print)
+        self.valueChanged.connect(self.adjustScrollPosition)
 
-    def adjustSection(self):
+    def adjustSectionSize(self):
         """チャート部を、Widgetの端まで広げる"""
         header = self.ganttWidget.header()
         if header is None:
@@ -168,6 +172,18 @@ class ChartScrollBar(QtGui.QScrollBar):
                 width -= header.sectionSize(i)
         if width >= 0:
             header.resizeSection(COLUMN_CHART, width)
+        self._adjustScrollBar()
+
+    def _adjustScrollBar(self):
+        """スクロールバーの最大値を設定、必要あれば現在値も修正する"""
+        self.setMaximum(self.ganttWidget.preferableWidth() - self.ganttWidget.header().sectionSize(COLUMN_CHART))
+
+    def adjustScrollPosition(self, value):
+        print("adjustScrollPosition", value, self.updatesEnabled())
+        #self.ganttWidget.paintEvent(QtGui.QPaintEvent(QRect(0,0,1004,639)))
+        self.ganttWidget.header().headerDataChanged(Qt.Horizontal, COLUMN_CHART, COLUMN_CHART)
+        self.ganttWidget.headerItem().emitDataChanged()
+
 
 
 class Widget_(QtGui.QTreeWidget):
@@ -208,28 +224,30 @@ class Widget_(QtGui.QTreeWidget):
         return tdelta.days * DAY_WIDTH
 
     def paintEvent(self, e):
-        super(Widget_, self).paintEvent(e)
         rect = e.rect()
-        #print(rect)
-        left = 0
-        for i in range(COLUMN_CHART):
-            left += self.columnWidth(i)
-        rect.setLeft(left)
+        print("paintEvnt", rect)
+        rect.setLeft(self.columnViewportPosition(COLUMN_CHART))
         self.cdi = CalendarDrawingInfo()
         self.cdi.prepare(None, rect, self.ganttModel.start, self.ganttModel.end + _ONEDAY)
+        super(Widget_, self).paintEvent(e)
 
     def drawRow(self, painter, options, index):
         """ガントチャート1行を描画する"""
         super(Widget_, self).drawRow(painter, options, index)
-        item = self.itemFromIndex(index)
-        task = item.data(COLUMN_CHART, Qt.UserRole)
-        #rect = self.visualRect(index)
-        itemRect = self.visualItemRect(item)
-        #print("\tdrawRow:", itemRect)
-        #print("\tdrawRow:", self.visualItemRect(item))
-        chartRect = self._chartRect(task, itemRect)
+        painter.save()
+        #print(self.visualRect(index))
+        itemRect = self.visualRect(index.sibling(index.row(), COLUMN_CHART))
+        #itemRect = self.visualItemRect(item)
+        print("\tdrawRow:", itemRect)
+        painter.setClipRect(itemRect)
+        painter.translate(-self.getChartScrollBar().value(), 0)
+        #----
         self.drawItemBackground(painter, itemRect)
-        self.drawChart(painter, task, chartRect)
+        task = self.itemFromIndex(index).data(COLUMN_CHART, Qt.UserRole)
+        if task is not None:
+            self.drawChart(painter, task, self._chartRect(task, itemRect))
+        #----
+        painter.restore()
 
     def _chartRect(self, task, rect):
         """taskを描画する矩形の座標を算出する"""

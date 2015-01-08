@@ -5,8 +5,9 @@ from datetime import datetime as dt, timedelta
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt, QModelIndex, QPoint, QRect
 from PyQt4.QtGui import QBrush, QPen, QColor, QFontMetrics
-from .util import s2dt
+from .util import s2dt, dt2s
 from .settings import Settings
+from .model import Task, TaskModel
 
 DAY_WIDTH = 16
 COLUMN_NAME  = 0
@@ -187,7 +188,7 @@ class ChartScrollBar(QtGui.QScrollBar):
 
 
 class Widget_(QtGui.QTreeWidget):
-    def __init__(self, settings = Settings(), model = None):
+    def __init__(self, settings = Settings(), model = TaskModel()):
         super(Widget_, self).__init__()
         self.settings = settings
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -206,11 +207,11 @@ class Widget_(QtGui.QTreeWidget):
 
     @ganttModel.setter
     def ganttModel(self, model):
-        self._ganttModel = model
         if model is None:
             return
-        self.addTopLevelItems(model.treeItems())
-        #
+        self._ganttModel = model
+        self.clear()
+        self.addTopLevelItems(_treeItems(model.children))
         for i in range(self.topLevelItemCount()):
             self.expandItem(self.topLevelItem(i))
 
@@ -297,7 +298,10 @@ class GanttWidget(Widget_):
             if parent is None:
                 parent = self.invisibleRootItem()
             index = parent.indexOfChild(ci)
-            parent.insertChild(index, self._createDefaultItem())
+            newItem = self._createDefaultItem()
+            parent.insertChild(index, newItem)
+            parentTask = parent.data(COLUMN_CHART, Qt.UserRole)
+            parentTask.children.insert(index, newItem.data(COLUMN_CHART, Qt.UserRole))
 
     def removeAction(self):
         print("remove", self.currentItem())
@@ -308,8 +312,28 @@ class GanttWidget(Widget_):
         parent.removeChild(ci)
 
     def _createDefaultItem(self):
-        ni = QtGui.QTreeWidgetItem()
-        ni.setText(0, '(未定義)')
-        ni.setText(1, '2014/12/01')
-        ni.setText(2, '2014/12/31)')
-        return ni
+        item = QtGui.QTreeWidgetItem()
+        _setTreeWidgetItem(item, Task.defaultTask())
+        #ni.setText(0, '(未定義)')
+        #ni.setText(1, '2014/12/01')
+        #ni.setText(2, '2014/12/31')
+        return item
+
+def _setTreeWidgetItem(item, task):
+    item.setText(0, task.name)
+    item.setText(1, dt2s(task.start))
+    item.setText(2, dt2s(task.end))
+    item.setText(3, "unknown")
+    item.setData(COLUMN_CHART, Qt.UserRole, task)
+
+def _treeItems(tasks):
+
+    items = []
+    for i in range(0, len(tasks)):
+        task = tasks[i]
+        item = QtGui.QTreeWidgetItem()
+        _setTreeWidgetItem(item, task)
+        if task.children is not None and len(task.children) > 0:
+            item.addChildren(_treeItems(task.children))
+        items.append(item)
+    return items

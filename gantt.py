@@ -7,6 +7,8 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QFileDialog
 from pygantt import TaskModel, Task, GanttWidget
 
+DEBUG=True
+
 def __SampleModel():
     model = TaskModel('サンプル工事', '2014/11/01', '2015/09/30')
     task = Task('たすく1', '2014/11/01', '2014/12/01', 1000, 600)
@@ -46,7 +48,7 @@ class MainWindow(QtGui.QMainWindow):
     def _setup_gui(self):
         #-- GUI部品の作成
         self.ganttWidget = GanttWidget()
-        self.ganttWidget.ganttModel = SampleModel()
+        #self.ganttWidget.ganttModel = SampleModel()
         self.main_frame = QWidget()
         #-- GUI部品のレイアウト
         main_layout = QVBoxLayout()
@@ -107,17 +109,35 @@ class MainWindow(QtGui.QMainWindow):
         if len(fileName) <= 0:
             return
         try:
-            model = TaskModel.load(fileName)
             self._workingDirectory = os.path.dirname(fileName)
-            self.ganttWidget.ganttModel = model
+            self.ganttWidget.ganttModel = TaskModel.load(fileName)
+            self.setWindowTitle(fileName)
         except :
-            print("Unexpected error:", sys.exc_info())
-            QtGui.QMessageBox.warning(self,
-                "がんと", "<%s>を開けませんでした" % fileName, "OK")
+            if DEBUG:
+                raise
+            else:
+                print("Unexpected error:", sys.exc_info())
+                QtGui.QMessageBox.warning(self,
+                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
 
     def saveAction(self):
-        print("save")
-        print(json.dumps(SampleModel()))
+        """ファイルを保存する"""
+        fileName = QFileDialog.getSaveFileName(self,
+                        'ファイルを保存する', self.workingDirectory)
+        if len(fileName) <= 0:
+            return
+        try:
+            print("save %s" % fileName)
+            self._workingDirectory = os.path.dirname(fileName)
+            TaskModel.dump(self.ganttWidget.ganttModel, fileName)
+            self.setWindowTitle(fileName)
+        except :
+            if DEBUG:
+                raise
+            else:
+                print("Unexpected error:", sys.exc_info())
+                QtGui.QMessageBox.warning(self,
+                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
 
     def exitAction(self):
         sys.exit()

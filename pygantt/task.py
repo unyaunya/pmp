@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import uuid
+from datetime import timedelta
 from .util import s2dt, dt
 
 class Task(object):
@@ -60,3 +61,9 @@ class Task(object):
         if index < 0 or index >= len(self.children):
             return None
         return self.children[index]
+
+    @staticmethod
+    def defaultTask():
+        start=dt.today()
+        end = start+timedelta(days=30)
+        return Task(start=start, end=end)

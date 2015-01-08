@@ -1,36 +1,16 @@
 #! python3
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt, QVariant
 from .util import s2dt, dt2s, dt
 from .task import Task
+from datetime import timedelta
 import json, codecs
 
 class TaskModel(Task):
-    #def __init__(self, name="(未定)", start = None, end = None, pv=0, ev=0):
-    #    super(TaskModel, self).__init__(name, start, end, pv, ev)
-
-    def treeItems(self, tasks = None):
-        items = []
-        if tasks is None:
-            tasks = self.children
-        for i in range(0, len(tasks)):
-            task = tasks[i]
-            item = QtGui.QTreeWidgetItem()
-            self._setTreeWidgetItem(item, task)
-            if task.children is not None and len(task.children) > 0:
-                item.addChildren(self.treeItems(task.children))
-            items.append(item)
-        return items
-
-    @staticmethod
-    def _setTreeWidgetItem(item, task):
-        item.setText(0, task.name)
-        item.setText(1, dt2s(task.start))
-        item.setText(2, dt2s(task.end))
-        item.setText(3, "unknown")
-        item.setData(4, Qt.UserRole, task)
+    def __init__(self, name='未設定', start=dt.today(), end=None, pv=0, ev=0):
+        if end is None:
+            end = start+timedelta(days=100)
+        super(TaskModel, self).__init__(name, start, end, pv, ev)
 
     @staticmethod
     def dump(obj, path):
@@ -40,11 +20,7 @@ class TaskModel(Task):
     @staticmethod
     def load(path):
         with open(path, mode='r', encoding='utf-8') as f:
-            model = json.load(f, object_hook=_from_json)
-            #taskModel = TaskModel(model.name, model.start, model.end)
-            #taskModel.children = model
-            #return taskModel
-            return model
+            return json.load(f, object_hook=_from_json)
 
 def _to_json(obj):
     if isinstance(obj, TaskModel):
@@ -92,8 +68,6 @@ def _from_json(json_object):
                     pv = json_object['pv'],
                     ev = json_object['ev'],
                     )
-            #model.pv = json_object['pv'],
-            #model.ev = json_object['ev'],
             model.children = json_object['children']
             return model
     return json_object

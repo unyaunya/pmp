@@ -286,6 +286,7 @@ class Widget_(QtGui.QTreeWidget):
 class GanttWidget(Widget_):
     def __init__(self, settings = Settings(), model = None):
         super(GanttWidget, self).__init__(settings)
+        self.itemChanged.connect(self.taskChanged)
 
     def insertAction(self):
         print("insert", self.currentItem())
@@ -298,7 +299,7 @@ class GanttWidget(Widget_):
             if parent is None:
                 parent = self.invisibleRootItem()
             index = parent.indexOfChild(ci)
-        newItem = self._createDefaultItem()
+        newItem = _taskToItem(Task.defaultTask())
         parent.insertChild(index, newItem)
         parentTask = parent.data(COLUMN_CHART, Qt.UserRole)
         if parentTask is None:
@@ -317,28 +318,26 @@ class GanttWidget(Widget_):
         parentTask.children.remove(ci.data(COLUMN_CHART, Qt.UserRole))
         parent.removeChild(ci)
 
-    def _createDefaultItem(self):
-        item = QtGui.QTreeWidgetItem()
-        _setTreeWidgetItem(item, Task.defaultTask())
-        #ni.setText(0, '(未定義)')
-        #ni.setText(1, '2014/12/01')
-        #ni.setText(2, '2014/12/31')
-        return item
+    def taskChanged(self, item, column):
+        task = item.data(COLUMN_CHART, Qt.UserRole)
+        if column == 0:
+            task.name = item.data(0, Qt.DisplayRole)
+        if column == 1:
+            task.start = s2dt(item.data(1, Qt.DisplayRole))
+        if column == 2:
+            task.end = s2dt(item.data(2, Qt.DisplayRole))
 
-def _setTreeWidgetItem(item, task):
+def _taskToItem(task):
+    item = QtGui.QTreeWidgetItem()
     item.setText(0, task.name)
     item.setText(1, dt2s(task.start))
     item.setText(2, dt2s(task.end))
     item.setText(3, "unknown")
     item.setData(COLUMN_CHART, Qt.UserRole, task)
+    item.setFlags(item.flags() | Qt.ItemIsEditable)
+    if task.children is not None and len(task.children) > 0:
+        item.addChildren(_treeItems(task.children))
+    return item
 
 def _treeItems(tasks):
-    items = []
-    for i in range(0, len(tasks)):
-        task = tasks[i]
-        item = QtGui.QTreeWidgetItem()
-        _setTreeWidgetItem(item, task)
-        if task.children is not None and len(task.children) > 0:
-            item.addChildren(_treeItems(task.children))
-        items.append(item)
-    return items
+    return [_taskToItem(tasks[i]) for i in range(0, len(tasks))]

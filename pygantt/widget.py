@@ -1,13 +1,18 @@
 #! python3
 # -*- coding: utf-8 -*-
 
+import os
+
 from datetime import datetime as dt, timedelta
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt, QModelIndex, QPoint, QRect
-from PyQt4.QtGui import QBrush, QPen, QColor, QFontMetrics
+from PyQt4.QtGui import QBrush, QPen, QColor, QFontMetrics, QFileDialog
 from .util import s2dt, dt2s
 from .settings import Settings
 from .model import Task, TaskModel
+from .config import config
+
+DEBUG=True
 
 DAY_WIDTH = 16
 COLUMN_NAME  = 0
@@ -284,11 +289,74 @@ class Widget_(QtGui.QTreeWidget):
         return self._csb
 
 class GanttWidget(Widget_):
+    #-----------------------------------------------------------------------
+    # Qtシグナル
+    #-----------------------------------------------------------------------
+    currentFileChanged = QtCore.pyqtSignal(str)
+
+    #-----------------------------------------------------------------------
+    # コンストラクタ
+    #-----------------------------------------------------------------------
     def __init__(self, settings = Settings(), model = None):
         super(GanttWidget, self).__init__(settings)
+        #-----------------------------------------------------------------------
+        self._currentFileName = None
+        self._path = None
+        self._workingDirectory = None
+        #-----------------------------------------------------------------------
         self.itemChanged.connect(self.taskChanged)
 
-    def insertAction(self):
+    #-----------------------------------------------------------------------
+    # その他
+    #-----------------------------------------------------------------------
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    def workingDirectory(self):
+        if self._path is None:
+            self._path = os.getcwd()
+        return self._path
+
+    @property
+    def currentFileName(self):
+        return self._currentFileName
+
+    def load(self, fileName):
+        try:
+            self._workingDirectory = os.path.dirname(fileName)
+            self.ganttModel = TaskModel.load(fileName)
+            config.addLastUsed(fileName)
+            self._currentFileName = fileName
+            self.currentFileChanged.emit(self._currentFileName)
+        except :
+            if DEBUG:
+                raise
+            else:
+                print("Unexpected error:", sys.exc_info())
+                QtGui.QMessageBox.warning(self,
+                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
+
+    def saveFile(self, fileName):
+        try:
+            print("save %s" % fileName)
+            self._workingDirectory = os.path.dirname(fileName)
+            TaskModel.dump(self.ganttModel, fileName)
+            self._currentFileName = fileName
+            self.currentFileChanged.emit(self._currentFileName)
+        except:
+            if DEBUG:
+                raise
+            else:
+                print("Unexpected error:", sys.exc_info())
+                QtGui.QMessageBox.warning(self,
+                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
+
+    #---------------------------------------------------------------------------
+    #   アクション
+    #---------------------------------------------------------------------------
+    def insert(self, action):
         print("insert", self.currentItem())
         ci = self.currentItem()
         if ci is None:
@@ -306,7 +374,7 @@ class GanttWidget(Widget_):
             parentTask = self.ganttModel
         parentTask.children.insert(index, newItem.data(COLUMN_CHART, Qt.UserRole))
 
-    def removeAction(self):
+    def remove(self, action):
         print("remove", self.currentItem())
         ci = self.currentItem()
         parent = ci.parent()
@@ -318,6 +386,37 @@ class GanttWidget(Widget_):
         parentTask.children.remove(ci.data(COLUMN_CHART, Qt.UserRole))
         parent.removeChild(ci)
 
+    def levelUp(self, action):
+        pass
+
+    def levelDown(self, action):
+        pass
+
+    def open(self):
+        """ファイルを開く"""
+        fileName = QFileDialog.getOpenFileName(self,
+                        'ファイルを開く', self.workingDirectory)
+        print("load %s" % fileName)
+        if len(fileName) <= 0:
+            return
+        self.load(fileName)
+
+    def save(self, action):
+        """ファイルを保存する"""
+        if self._currentFileName is None:
+            self.saveAs()
+        else:
+            self.saveFile(self._currentFileName)
+
+    def saveAs(self, action):
+        """ファイル名を指定して保存する"""
+        fileName = QFileDialog.getSaveFileName(self,
+                        'ファイルを保存する', self.workingDirectory)
+        if len(fileName) <= 0:
+            return
+        self.saveFile(self._currentFileName)
+
+    #---------------------------------------------------------------------------
     def taskChanged(self, item, column):
         task = item.data(COLUMN_CHART, Qt.UserRole)
         if column == 0:
@@ -326,6 +425,7 @@ class GanttWidget(Widget_):
             task.start = s2dt(item.data(1, Qt.DisplayRole))
         if column == 2:
             task.end = s2dt(item.data(2, Qt.DisplayRole))
+
 
 def _taskToItem(task):
     item = QtGui.QTreeWidgetItem()

@@ -5,11 +5,9 @@ import os, json
 import sys
 import configparser
 from PyQt4 import QtGui
-from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QFileDialog
+from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar
 from pygantt import TaskModel, Task, GanttWidget
 from pygantt.config import config
-
-DEBUG=True
 
 def __SampleModel():
     model = TaskModel('サンプル工事', '2014/11/01', '2015/09/30')
@@ -43,9 +41,6 @@ def SampleModel():
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-        self._currentFileName = None
-        self._path = None
-        self._workingDirectory = None
         self._setup_gui()
 
     def _setup_gui(self):
@@ -53,8 +48,6 @@ class MainWindow(QtGui.QMainWindow):
         #-- GUI部品の作成
         self.ganttWidget = GanttWidget()
         self.main_frame = QWidget()
-        if config.lastUsed() != '':
-            self.load(config.lastUsed())
         #-- GUI部品のレイアウト
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.ganttWidget)
@@ -65,7 +58,13 @@ class MainWindow(QtGui.QMainWindow):
         self.createActions()
         self.createMenus()
         #-- その他(シグナル/スロットの接続とか)
+        self.ganttWidget.currentFileChanged.connect(self._currentFileChanged)
         self.resize(1024, 768)
+        if config.lastUsed() != '':
+            self.ganttWidget.load(config.lastUsed())
+
+    def _currentFileChanged(self, newFileName):
+        self.setWindowTitle(newFileName)
 
     def _createAction(self, name, func):
         action = QAction(name, self)
@@ -74,18 +73,21 @@ class MainWindow(QtGui.QMainWindow):
 
     def createActions(self):
         self.actions = {}
-        self._createAction('Load', self.loadAction)
-        self._createAction('Save', self.saveAction)
-        self._createAction('SaveAs', self.saveAsAction)
-        self._createAction('Exit', self.exitAction)
-        self._createAction('Insert', self.insertAction)
-        self._createAction('Remove', self.removeAction)
+        gw = self.ganttWidget
+        self._createAction('Open', gw.open)
+        self._createAction('Save', gw.save)
+        self._createAction('SaveAs', gw.saveAs)
+        self._createAction('Exit', self.exit)
+        self._createAction('Insert', gw.insert)
+        self._createAction('Remove', gw.remove)
+        self._createAction('LevelUp', gw.levelUp)
+        self._createAction('LevelDown', gw.levelDown)
 
     def createMenus(self):
         menuBar = self.menuBar()
         if True:
             fileMenu = menuBar.addMenu("File")
-            fileMenu.addAction(self.actions['Load'])
+            fileMenu.addAction(self.actions['Open'])
             fileMenu.addAction(self.actions['Save'])
             fileMenu.addAction(self.actions['SaveAs'])
             fileMenu.addSeparator()
@@ -93,99 +95,18 @@ class MainWindow(QtGui.QMainWindow):
             editMenu = menuBar.addMenu("Edit")
             editMenu.addAction(self.actions['Insert'])
             editMenu.addAction(self.actions['Remove'])
-
-    @property
-    def path(self):
-        return self._path
-
-    @property
-    def workingDirectory(self):
-        if self._path is None:
-            self._path = os.getcwd()
-        return self._path
-
-    def load(self, fileName):
-        try:
-            self._workingDirectory = os.path.dirname(fileName)
-            self.ganttWidget.ganttModel = TaskModel.load(fileName)
-            self.setWindowTitle(fileName)
-            self._currentFileName = fileName
-            config.addLastUsed(fileName)
-        except :
-            if DEBUG:
-                raise
-            else:
-                print("Unexpected error:", sys.exc_info())
-                QtGui.QMessageBox.warning(self,
-                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
-
-
-    def save(self, fileName):
-        try:
-            print("save %s" % fileName)
-            self._workingDirectory = os.path.dirname(fileName)
-            TaskModel.dump(self.ganttWidget.ganttModel, fileName)
-            self.setWindowTitle(fileName)
-        except:
-            if DEBUG:
-                raise
-            else:
-                print("Unexpected error:", sys.exc_info())
-                QtGui.QMessageBox.warning(self,
-                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
+            editMenu.addSeparator()
+            editMenu.addAction(self.actions['LevelUp'])
+            editMenu.addAction(self.actions['LevelDown'])
 
     #---------------------------------------------------------------------------
     #   アクション
     #---------------------------------------------------------------------------
-    def loadAction(self):
-        """ファイルを開く"""
-        fileName = QFileDialog.getOpenFileName(self,
-                        'ファイルを開く', self.workingDirectory)
-        print("load %s" % fileName)
-        if len(fileName) <= 0:
-            return
-        self.load(fileName)
-
-    def saveAction(self):
-        """ファイルを保存する"""
-        if self._currentFileName is None:
-            self.saveAsAction()
-        else:
-            self.save(self._currentFileName)
-
-    def saveAsAction(self):
-        """ファイル名を指定して保存する"""
-        fileName = QFileDialog.getSaveFileName(self,
-                        'ファイルを保存する', self.workingDirectory)
-        if len(fileName) <= 0:
-            return
-        try:
-            print("save %s" % fileName)
-            self._workingDirectory = os.path.dirname(fileName)
-            TaskModel.dump(self.ganttWidget.ganttModel, fileName)
-            self.setWindowTitle(fileName)
-        except :
-            if DEBUG:
-                raise
-            else:
-                print("Unexpected error:", sys.exc_info())
-                QtGui.QMessageBox.warning(self,
-                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
-
-    def exitAction(self):
+    def exit(self):
         sys.exit()
 
-    def insertAction(self):
-        self.ganttWidget.insertAction()
-
-    def removeAction(self):
-        self.ganttWidget.removeAction()
 
 def main():
-    #inifile = configparser.SafeConfigParser()
-    #inifile.read("./config.ini")
-    #print(inifile.get("lastUsed", "count"))
-    #print(inifile.get("lastUsed", "1"))
     app = QtGui.QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()

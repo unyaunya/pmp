@@ -35,7 +35,7 @@ class Config(object):
             return ''
         return self._lastUsed[index]
 
-    def addlastUsed(self, file):
+    def addLastUsed(self, file):
         try:
             n = self._lastUsed.index(file)
         except:

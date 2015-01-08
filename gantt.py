@@ -43,9 +43,10 @@ def SampleModel():
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-        self._setup_gui()
+        self._currentFileName = None
         self._path = None
         self._workingDirectory = None
+        self._setup_gui()
 
     def _setup_gui(self):
         self.setWindowTitle("がんと")
@@ -75,6 +76,7 @@ class MainWindow(QtGui.QMainWindow):
         self.actions = {}
         self._createAction('Load', self.loadAction)
         self._createAction('Save', self.saveAction)
+        self._createAction('SaveAs', self.saveAsAction)
         self._createAction('Exit', self.exitAction)
         self._createAction('Insert', self.insertAction)
         self._createAction('Remove', self.removeAction)
@@ -85,6 +87,7 @@ class MainWindow(QtGui.QMainWindow):
             fileMenu = menuBar.addMenu("File")
             fileMenu.addAction(self.actions['Load'])
             fileMenu.addAction(self.actions['Save'])
+            fileMenu.addAction(self.actions['SaveAs'])
             fileMenu.addSeparator()
             fileMenu.addAction(self.actions['Exit'])
             editMenu = menuBar.addMenu("Edit")
@@ -102,8 +105,34 @@ class MainWindow(QtGui.QMainWindow):
         return self._path
 
     def load(self, fileName):
-        self.ganttWidget.ganttModel = TaskModel.load(fileName)
-        self.setWindowTitle(fileName)
+        try:
+            self._workingDirectory = os.path.dirname(fileName)
+            self.ganttWidget.ganttModel = TaskModel.load(fileName)
+            self.setWindowTitle(fileName)
+            self._currentFileName = fileName
+            config.addLastUsed(fileName)
+        except :
+            if DEBUG:
+                raise
+            else:
+                print("Unexpected error:", sys.exc_info())
+                QtGui.QMessageBox.warning(self,
+                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
+
+
+    def save(self, fileName):
+        try:
+            print("save %s" % fileName)
+            self._workingDirectory = os.path.dirname(fileName)
+            TaskModel.dump(self.ganttWidget.ganttModel, fileName)
+            self.setWindowTitle(fileName)
+        except:
+            if DEBUG:
+                raise
+            else:
+                print("Unexpected error:", sys.exc_info())
+                QtGui.QMessageBox.warning(self,
+                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
 
     #---------------------------------------------------------------------------
     #   アクション
@@ -115,20 +144,17 @@ class MainWindow(QtGui.QMainWindow):
         print("load %s" % fileName)
         if len(fileName) <= 0:
             return
-        try:
-            self._workingDirectory = os.path.dirname(fileName)
-            self.load(fileName)
-            config.addlastUsed(fileName)
-        except :
-            if DEBUG:
-                raise
-            else:
-                print("Unexpected error:", sys.exc_info())
-                QtGui.QMessageBox.warning(self,
-                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
+        self.load(fileName)
 
     def saveAction(self):
         """ファイルを保存する"""
+        if self._currentFileName is None:
+            self.saveAsAction()
+        else:
+            self.save(self._currentFileName)
+
+    def saveAsAction(self):
+        """ファイル名を指定して保存する"""
         fileName = QFileDialog.getSaveFileName(self,
                         'ファイルを保存する', self.workingDirectory)
         if len(fileName) <= 0:

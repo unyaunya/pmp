@@ -3,9 +3,11 @@
 
 import os, json
 import sys
+import configparser
 from PyQt4 import QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QFileDialog
 from pygantt import TaskModel, Task, GanttWidget
+from pygantt.config import config
 
 DEBUG=True
 
@@ -46,10 +48,12 @@ class MainWindow(QtGui.QMainWindow):
         self._workingDirectory = None
 
     def _setup_gui(self):
+        self.setWindowTitle("がんと")
         #-- GUI部品の作成
         self.ganttWidget = GanttWidget()
-        #self.ganttWidget.ganttModel = SampleModel()
         self.main_frame = QWidget()
+        if config.lastUsed() != '':
+            self.load(config.lastUsed())
         #-- GUI部品のレイアウト
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.ganttWidget)
@@ -60,7 +64,6 @@ class MainWindow(QtGui.QMainWindow):
         self.createActions()
         self.createMenus()
         #-- その他(シグナル/スロットの接続とか)
-        self.setWindowTitle("がんと")
         self.resize(1024, 768)
 
     def _createAction(self, name, func):
@@ -98,6 +101,10 @@ class MainWindow(QtGui.QMainWindow):
             self._path = os.getcwd()
         return self._path
 
+    def load(self, fileName):
+        self.ganttWidget.ganttModel = TaskModel.load(fileName)
+        self.setWindowTitle(fileName)
+
     #---------------------------------------------------------------------------
     #   アクション
     #---------------------------------------------------------------------------
@@ -110,8 +117,8 @@ class MainWindow(QtGui.QMainWindow):
             return
         try:
             self._workingDirectory = os.path.dirname(fileName)
-            self.ganttWidget.ganttModel = TaskModel.load(fileName)
-            self.setWindowTitle(fileName)
+            self.load(fileName)
+            config.addlastUsed(fileName)
         except :
             if DEBUG:
                 raise
@@ -149,6 +156,10 @@ class MainWindow(QtGui.QMainWindow):
         self.ganttWidget.removeAction()
 
 def main():
+    #inifile = configparser.SafeConfigParser()
+    #inifile.read("./config.ini")
+    #print(inifile.get("lastUsed", "count"))
+    #print(inifile.get("lastUsed", "1"))
     app = QtGui.QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()

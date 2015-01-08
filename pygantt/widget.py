@@ -292,16 +292,18 @@ class GanttWidget(Widget_):
         ci = self.currentItem()
         if ci is None:
             parent = self.invisibleRootItem()
-            parent.addChild(QtGui.QTreeWidgetItem())
+            index = 0
         else:
             parent = ci.parent()
             if parent is None:
                 parent = self.invisibleRootItem()
             index = parent.indexOfChild(ci)
-            newItem = self._createDefaultItem()
-            parent.insertChild(index, newItem)
-            parentTask = parent.data(COLUMN_CHART, Qt.UserRole)
-            parentTask.children.insert(index, newItem.data(COLUMN_CHART, Qt.UserRole))
+        newItem = self._createDefaultItem()
+        parent.insertChild(index, newItem)
+        parentTask = parent.data(COLUMN_CHART, Qt.UserRole)
+        if parentTask is None:
+            parentTask = self.ganttModel
+        parentTask.children.insert(index, newItem.data(COLUMN_CHART, Qt.UserRole))
 
     def removeAction(self):
         print("remove", self.currentItem())
@@ -309,6 +311,10 @@ class GanttWidget(Widget_):
         parent = ci.parent()
         if parent is None:
             parent = self.invisibleRootItem()
+            parentTask = self.ganttModel
+        else:
+            parentTask = parent.data(COLUMN_CHART, Qt.UserRole)
+        parentTask.children.remove(ci.data(COLUMN_CHART, Qt.UserRole))
         parent.removeChild(ci)
 
     def _createDefaultItem(self):
@@ -327,7 +333,6 @@ def _setTreeWidgetItem(item, task):
     item.setData(COLUMN_CHART, Qt.UserRole, task)
 
 def _treeItems(tasks):
-
     items = []
     for i in range(0, len(tasks)):
         task = tasks[i]

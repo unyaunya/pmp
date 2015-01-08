@@ -216,9 +216,17 @@ class Widget_(QtGui.QTreeWidget):
             return
         self._ganttModel = model
         self.clear()
-        self.addTopLevelItems(TreeWidgetItem.Items(model.children))
-        for i in range(self.topLevelItemCount()):
-            self.expandItem(self.topLevelItem(i))
+        items = TreeWidgetItem.Items(model.children)
+        self.addTopLevelItems(items)
+        self._sync_expand_collapse(items)
+
+    def _sync_expand_collapse(self, items):
+        for item in items:
+            self._sync_expand_collapse(item.childItems())
+            if item.task.expanded:
+                self.expandItem(item)
+            else:
+                self.collapseItem(item)
 
     def preferableWidth(self):
         if self.ganttModel is None:
@@ -305,6 +313,8 @@ class GanttWidget(Widget_):
         self._workingDirectory = None
         #-----------------------------------------------------------------------
         self.itemChanged.connect(self.taskChanged)
+        self.itemCollapsed.connect(self.taskCollapsed)
+        self.itemExpanded.connect(self.taskExpanded)
 
     #-----------------------------------------------------------------------
     # その他
@@ -357,54 +367,81 @@ class GanttWidget(Widget_):
     #   アクション
     #---------------------------------------------------------------------------
     def insert(self, action):
-        print("insert", self.currentItem())
-        ci = self.currentItem()
-        if ci is None or ci.isToplevel():
-            parent = self.invisibleRootItem()
-            parentTask = self.ganttModel
-            index = 0
-        else:
-            parent = ci.parent()
-            parentTask = parent.task
-            index = parent.indexOfChild(ci)
+        """カレントアイテムの場所に新規タスクを挿入する"""
+        (ci, index, parent, parentTask) = self._get_item_info()
         newItem = TreeWidgetItem(Task.defaultTask())
         parent.insertChild(index, newItem)
         parentTask.children.insert(index, newItem.task)
 
     def remove(self, action):
-        print("remove", self.currentItem())
-        ci = self.currentItem()
+        """カレントアイテムを削除する"""
+        (ci, index, parent, parentTask) = self._get_item_info()
         if ci is None:
             return
-        if ci.isToplevel():
-            parent = self.invisibleRootItem()
-            parentTask = self.ganttModel
-        else:
-            parentTask = parent.task
         parentTask.children.remove(ci.task)
         parent.removeChild(ci)
 
+    def _get_item_info(self, ci = None):
+        if ci is None:
+            ci = self.currentItem()
+        if ci is None:
+            parent = self.invisibleRootItem()
+            parentTask = self.ganttModel
+            index = 0
+        elif self._isToplevel(ci):
+            parent = self.invisibleRootItem()
+            parentTask = self.ganttModel
+            index = parent.indexOfChild(ci)
+        else:
+            parent = ci.parent()
+            parentTask = parent.task
+            index = parent.indexOfChild(ci)
+        return (ci, index, parent, parentTask)
+
+    def _isToplevel(self, item):
+        if item.parent() is None:
+            return True
+        if self.indexFromItem(item.parent(), 0).isValid():
+            return False
+        return True
+
     def levelUp(self, action):
-        ci = self.currentItem()
+        (ci, index, parent, parentTask) = self._get_item_info()
         if ci is None:
             return
-        parent = ci.parent()
-        index = self.indexFromItem(ci, 0)
-        print(ci, index, parent, self.invisibleRootItem())
-        print(index.isValid(), index.row(), index.column(), index.parent())
-        pindex = index.parent()
-        print(pindex.isValid(), pindex.row(), pindex.column(), pindex.parent())
+        if self._isToplevel(ci):
+            #トップレベルにいるなら、レベルを上げようがない
+            return
+        #親アイテムから離脱する
+        parentTask.children.remove(ci.task)
+        parent.removeChild(ci)
+        #親アイテムの直近の弟になる。
+        (parent, parent_index, granpa, granpaTask) = self._get_item_info(parent)
+        granpa.insertChild(parent_index+1, ci)
+        granpaTask.children.insert(parent_index+1, ci.task)
+        self._sync_expand_collapse([ci])
+        #対象タスクをカレントタスクにする
+        self.setCurrentItem(ci)
 
     def levelDown(self, action):
-        ci = self.currentItem()
+        (ci, index, parent, parentTask) = self._get_item_info()
         if ci is None:
             return
-        parent = ci.parent()
-        index = self.indexFromItem(ci, 0)
-        print(ci, index, parent, self.invisibleRootItem())
-        print(index.isValid(), index.row(), index.column(), index.parent())
-        pindex = index.parent()
-        print(pindex.isValid(), pindex.row(), pindex.column(), pindex.parent())
+        modelIndex = self.indexFromItem(ci, 0)
+        if modelIndex.row() <= 0:
+            #兄アイテムがいない場合は処理を行わない
+            return
+        #年の近い兄アイテムを探しておく
+        sibling = self.itemFromIndex(modelIndex.sibling(modelIndex.row()-1, 0))
+        #親アイテムから離脱する
+        parentTask.children.remove(ci.task)
+        parent.removeChild(ci)
+        #年の近い兄アイテムの末子になる
+        sibling.addChild(ci)
+        sibling.task.children.append(ci.task)
+        self._sync_expand_collapse([ci])
+        #対象タスクをカレントタスクにする
+        self.setCurrentItem(ci)
 
     def open(self):
         """ファイルを開く"""
@@ -440,6 +477,12 @@ class GanttWidget(Widget_):
         if column == 2:
             task.end = s2dt(item.end)
 
+    def taskExpanded(self, item):
+        item.task.expanded = True
+
+    def taskCollapsed(self, item):
+        item.task.expanded = False
+
 
 class TreeWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, task=None):
@@ -457,12 +500,11 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         if task.children is not None and len(task.children) > 0:
             self.addChildren(TreeWidgetItem.Items(task.children))
 
-    def isToplevel(self):
-        if self.parent() is None:
-            return True
-        if self.parent().isValid():
-            return False
-        return True
+    def childItems(self):
+        items = []
+        for i in range(self.childCount()):
+            items.append(self.child(i))
+        return items
 
     @property
     def task(self):

@@ -16,6 +16,7 @@ class Task(object):
         self.pv = pv
         self.ev = ev
         self.children = []
+        self.expanded = True
 
     @property
     def uuid(self):

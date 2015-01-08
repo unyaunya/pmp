@@ -31,6 +31,7 @@ def _to_json(obj):
                 'pv': obj.pv,
                 'ev': obj.ev,
                 'children': obj.children,
+                'expanded': obj.expanded,
                 }
     if isinstance(obj, Task):
         return {'__class__': 'pygantt.Task',
@@ -40,6 +41,7 @@ def _to_json(obj):
                 'pv': obj.pv,
                 'ev': obj.ev,
                 'children': obj.children,
+                'expanded': obj.expanded,
                 }
     raise TypeError(repr(obj) + ' is not JSON serializable')
 
@@ -54,6 +56,11 @@ def _from_json(json_object):
                     ev = json_object['ev'],
                     )
             model.children = json_object['children']
+            model.expanded = True
+            try:
+                model.expanded = json_object['expanded']
+            except:
+                pass
             return model
         if json_object['__class__'] == 'pygantt.TaskModel':
             model = TaskModel(

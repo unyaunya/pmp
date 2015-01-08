@@ -216,7 +216,7 @@ class Widget_(QtGui.QTreeWidget):
             return
         self._ganttModel = model
         self.clear()
-        self.addTopLevelItems(_treeItems(model.children))
+        self.addTopLevelItems(TreeWidgetItem.Items(model.children))
         for i in range(self.topLevelItemCount()):
             self.expandItem(self.topLevelItem(i))
 
@@ -359,38 +359,52 @@ class GanttWidget(Widget_):
     def insert(self, action):
         print("insert", self.currentItem())
         ci = self.currentItem()
-        if ci is None:
+        if ci is None or ci.isToplevel():
             parent = self.invisibleRootItem()
+            parentTask = self.ganttModel
             index = 0
         else:
             parent = ci.parent()
-            if parent is None:
-                parent = self.invisibleRootItem()
+            parentTask = parent.task
             index = parent.indexOfChild(ci)
-        newItem = _taskToItem(Task.defaultTask())
+        newItem = TreeWidgetItem(Task.defaultTask())
         parent.insertChild(index, newItem)
-        parentTask = parent.data(COLUMN_CHART, Qt.UserRole)
-        if parentTask is None:
-            parentTask = self.ganttModel
-        parentTask.children.insert(index, newItem.data(COLUMN_CHART, Qt.UserRole))
+        parentTask.children.insert(index, newItem.task)
 
     def remove(self, action):
         print("remove", self.currentItem())
         ci = self.currentItem()
-        parent = ci.parent()
-        if parent is None:
+        if ci is None:
+            return
+        if ci.isToplevel():
             parent = self.invisibleRootItem()
             parentTask = self.ganttModel
         else:
-            parentTask = parent.data(COLUMN_CHART, Qt.UserRole)
-        parentTask.children.remove(ci.data(COLUMN_CHART, Qt.UserRole))
+            parentTask = parent.task
+        parentTask.children.remove(ci.task)
         parent.removeChild(ci)
 
     def levelUp(self, action):
-        pass
+        ci = self.currentItem()
+        if ci is None:
+            return
+        parent = ci.parent()
+        index = self.indexFromItem(ci, 0)
+        print(ci, index, parent, self.invisibleRootItem())
+        print(index.isValid(), index.row(), index.column(), index.parent())
+        pindex = index.parent()
+        print(pindex.isValid(), pindex.row(), pindex.column(), pindex.parent())
 
     def levelDown(self, action):
-        pass
+        ci = self.currentItem()
+        if ci is None:
+            return
+        parent = ci.parent()
+        index = self.indexFromItem(ci, 0)
+        print(ci, index, parent, self.invisibleRootItem())
+        print(index.isValid(), index.row(), index.column(), index.parent())
+        pindex = index.parent()
+        print(pindex.isValid(), pindex.row(), pindex.column(), pindex.parent())
 
     def open(self):
         """ファイルを開く"""
@@ -418,26 +432,70 @@ class GanttWidget(Widget_):
 
     #---------------------------------------------------------------------------
     def taskChanged(self, item, column):
-        task = item.data(COLUMN_CHART, Qt.UserRole)
+        task = item.task
         if column == 0:
-            task.name = item.data(0, Qt.DisplayRole)
+            task.name = item.name
         if column == 1:
-            task.start = s2dt(item.data(1, Qt.DisplayRole))
+            task.start = s2dt(item.start)
         if column == 2:
-            task.end = s2dt(item.data(2, Qt.DisplayRole))
+            task.end = s2dt(item.end)
 
 
-def _taskToItem(task):
-    item = QtGui.QTreeWidgetItem()
-    item.setText(0, task.name)
-    item.setText(1, dt2s(task.start))
-    item.setText(2, dt2s(task.end))
-    item.setText(3, "unknown")
-    item.setData(COLUMN_CHART, Qt.UserRole, task)
-    item.setFlags(item.flags() | Qt.ItemIsEditable)
-    if task.children is not None and len(task.children) > 0:
-        item.addChildren(_treeItems(task.children))
-    return item
+class TreeWidgetItem(QtGui.QTreeWidgetItem):
+    def __init__(self, task=None):
+        super(TreeWidgetItem, self).__init__()
+        if task is not None:
+            self.taskToItem(task)
 
-def _treeItems(tasks):
-    return [_taskToItem(tasks[i]) for i in range(0, len(tasks))]
+    def taskToItem(self, task):
+        self.name = task.name
+        self.start = dt2s(task.start)
+        self.end = dt2s(task.end)
+        self.setText(3, "unknown")
+        self.task = task
+        self.setFlags(self.flags() | Qt.ItemIsEditable)
+        if task.children is not None and len(task.children) > 0:
+            self.addChildren(TreeWidgetItem.Items(task.children))
+
+    def isToplevel(self):
+        if self.parent() is None:
+            return True
+        if self.parent().isValid():
+            return False
+        return True
+
+    @property
+    def task(self):
+        return self.data(COLUMN_CHART, Qt.UserRole)
+
+    @task.setter
+    def task(self, value):
+        self.setData(COLUMN_CHART, Qt.UserRole, value)
+
+    @property
+    def name(self):
+        return self.data(0, Qt.DisplayRole)
+
+    @name.setter
+    def name(self, value):
+        self.setData(0, Qt.DisplayRole, value)
+
+    @property
+    def start(self):
+        return self.data(1, Qt.DisplayRole)
+
+    @start.setter
+    def start(self, value):
+        self.setData(1, Qt.DisplayRole, value)
+
+    @property
+    def end(self):
+        return self.data(2, Qt.DisplayRole)
+
+    @end.setter
+    def end(self, value):
+        self.setData(2, Qt.DisplayRole, value)
+
+    @staticmethod
+    def Items(tasks):
+        return [TreeWidgetItem(tasks[i]) for i in range(0, len(tasks))]

@@ -20,6 +20,7 @@ class CalendarDrawingInfo():
         self._dayWidth = TIMESCALE_DAY.WIDTH
         self.year = True
         self.month = True
+        self.week = False
         self.day = True
         self.chart = CALENDAR.DAY
 
@@ -27,6 +28,7 @@ class CalendarDrawingInfo():
         n = 0
         if self.year: n += 1
         if self.month: n += 1
+        if self.week: n += 1
         if self.day: n += 1
         return n
 
@@ -53,32 +55,36 @@ class CalendarDrawingInfo():
         xe_ = rect.right()
         #----
         date = start
-        self.xs = [[rect.left()], [rect.left()], [rect.left()]]
-        self.ts = [[str(date.year)], [str(date.month)], [str(date.day)]]
+        self.xs = [[rect.left()], [rect.left()], [rect.left()], [rect.left()]]
+        self.ts = [[str(date.year)+"年"], [str(date.month)+"月"], [''], [str(date.day)]]
         self.bs = [ [boundingRect(self.ts[CALENDAR.YEAR][0])],
                     [boundingRect(self.ts[CALENDAR.MONTH][0])],
+                    [boundingRect(self.ts[CALENDAR.DAY][0])],
                     [boundingRect(self.ts[CALENDAR.DAY][0])]]
         x = xs_
         pdate = date
+        prev_week = date
         x += self.dayWidth
         while date <= end:
             date += _ONEDAY
             #-----------------------
             if pdate.day != date.day:
-                y = self.ys[CALENDAR.DAY]
                 text = str(date.day)
                 self.xs[CALENDAR.DAY].append(x)
                 self.ts[CALENDAR.DAY].append(text)
                 self.bs[CALENDAR.DAY].append(boundingRect(text))
+            if date.weekday() == 0:
+                text = str(date.day)
+                self.xs[CALENDAR.WEEK].append(x)
+                self.ts[CALENDAR.WEEK].append(text)
+                self.bs[CALENDAR.WEEK].append(boundingRect(text))
             if pdate.month != date.month:
-                y = self.ys[CALENDAR.MONTH]
-                text = str(date.month)
+                text = str(date.month)+"月"
                 self.xs[CALENDAR.MONTH].append(x)
                 self.ts[CALENDAR.MONTH].append(text)
                 self.bs[CALENDAR.MONTH].append(boundingRect(text))
             if pdate.year != date.year:
-                y = self.ys[CALENDAR.YEAR]
-                text = str(date.year)
+                text = str(date.year)+"年"
                 self.xs[CALENDAR.YEAR].append(x)
                 self.ts[CALENDAR.YEAR].append(text)
                 self.bs[CALENDAR.YEAR].append(boundingRect(text))
@@ -89,6 +95,7 @@ class CalendarDrawingInfo():
             self.ys.append(dh * i)
             self.xs[CALENDAR.YEAR].append(x)
             self.xs[CALENDAR.MONTH].append(x)
+            self.xs[CALENDAR.WEEK].append(x)
             self.xs[CALENDAR.DAY].append(x)
 
     @property
@@ -109,6 +116,10 @@ class CalendarDrawingInfo():
             row += 1
         if self.month:
             index = CALENDAR.MONTH
+            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4text)
+            row += 1
+        if self.week:
+            index = CALENDAR.WEEK
             self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4text)
             row += 1
         if self.day:
@@ -534,6 +545,7 @@ class GanttWidget(Widget_):
         self.setDayWidth(timescale.WIDTH)
         self.header().cdi.year = timescale.YEAR
         self.header().cdi.month = timescale.MONTH
+        self.header().cdi.week = timescale.WEEK
         self.header().cdi.day = timescale.DAY
         self.cdi.chart = timescale.CHART
 

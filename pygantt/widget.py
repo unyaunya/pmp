@@ -17,7 +17,18 @@ _ONEDAY = timedelta(days=1)
 
 class CalendarDrawingInfo():
     def __init__(self):
-        pass
+        self._dayWidth = TIMESCALE_DAY.WIDTH
+        self.year = True
+        self.month = True
+        self.day = True
+        self.chart = CALENDAR.DAY
+
+    def rowCount(self):
+        n = 0
+        if self.year: n += 1
+        if self.month: n += 1
+        if self.day: n += 1
+        return n
 
     def prepare(self, painter, rect, start, end):
         if painter is None:
@@ -31,12 +42,12 @@ class CalendarDrawingInfo():
                 """指定された文字列の描画サイズを取得する"""
                 return fm.boundingRect(s)
 
-        self.ys = [0,0,0,0]
-        self.ys[CALENDAR_TOP] = rect.top()
-        dh = (rect.bottom() - self.ys[CALENDAR_TOP])/CALENDAR_BOTTOM
-        self.ys[CALENDAR_MONTH] = self.ys[CALENDAR_YEAR] + dh
-        self.ys[CALENDAR_DAY] = self.ys[CALENDAR_MONTH] + dh
-        self.ys[CALENDAR_BOTTOM] = rect.bottom()
+        rowCount = self.rowCount()
+        dh = float(rect.height())/self.rowCount()
+        self.ys = []
+        for i in range(rowCount):
+            self.ys.append(dh * i)
+        self.ys.append(rect.bottom())
         #----
         xs_ = rect.left()
         xe_ = rect.right()
@@ -44,50 +55,72 @@ class CalendarDrawingInfo():
         date = start
         self.xs = [[rect.left()], [rect.left()], [rect.left()]]
         self.ts = [[str(date.year)], [str(date.month)], [str(date.day)]]
-        self.bs = [[boundingRect(self.ts[0][0])], [boundingRect(self.ts[1][0])], [boundingRect(self.ts[2][0])]]
+        self.bs = [ [boundingRect(self.ts[CALENDAR.YEAR][0])],
+                    [boundingRect(self.ts[CALENDAR.MONTH][0])],
+                    [boundingRect(self.ts[CALENDAR.DAY][0])]]
         x = xs_
         pdate = date
-        x += DAY_WIDTH
+        x += self.dayWidth
         while date <= end:
             date += _ONEDAY
             #-----------------------
             if pdate.day != date.day:
-                y = self.ys[2]
+                y = self.ys[CALENDAR.DAY]
                 text = str(date.day)
-                self.xs[2].append(x)
-                self.ts[2].append(text)
-                self.bs[2].append(boundingRect(text))
+                self.xs[CALENDAR.DAY].append(x)
+                self.ts[CALENDAR.DAY].append(text)
+                self.bs[CALENDAR.DAY].append(boundingRect(text))
             if pdate.month != date.month:
-                y = self.ys[1]
+                y = self.ys[CALENDAR.MONTH]
                 text = str(date.month)
-                self.xs[1].append(x)
-                self.ts[1].append(text)
-                self.bs[1].append(boundingRect(text))
+                self.xs[CALENDAR.MONTH].append(x)
+                self.ts[CALENDAR.MONTH].append(text)
+                self.bs[CALENDAR.MONTH].append(boundingRect(text))
             if pdate.year != date.year:
-                y = self.ys[0]
+                y = self.ys[CALENDAR.YEAR]
                 text = str(date.year)
-                self.xs[0].append(x)
-                self.ts[0].append(text)
-                self.bs[0].append(boundingRect(text))
+                self.xs[CALENDAR.YEAR].append(x)
+                self.ts[CALENDAR.YEAR].append(text)
+                self.bs[CALENDAR.YEAR].append(boundingRect(text))
             #-----------------------
-            x += DAY_WIDTH
+            x += self.dayWidth
             pdate = date
         else:
-            self.xs[0].append(x)
-            self.xs[1].append(x)
-            self.xs[2].append(x)
+            self.ys.append(dh * i)
+            self.xs[CALENDAR.YEAR].append(x)
+            self.xs[CALENDAR.MONTH].append(x)
+            self.xs[CALENDAR.DAY].append(x)
+
+    @property
+    def dayWidth(self):
+        return self._dayWidth
+
+    @dayWidth.setter
+    def dayWidth(self, value):
+        self._dayWidth = value
 
     def drawHeader(self, painter, rect, pen4line, pen4text):
         painter.setPen(pen4line)
         self.drawCalendarHorizontalLine_(painter, rect)
-        for i in range(3):
-            self.drawCalendarVerticalLine_(painter, i, self.ys[i], self.ys[i+1]-1, pen4text)
+        row = 0
+        if self.year:
+            index = CALENDAR.YEAR
+            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4text)
+            row += 1
+        if self.month:
+            index = CALENDAR.MONTH
+            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4text)
+            row += 1
+        if self.day:
+            index = CALENDAR.DAY
+            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4text)
+            row += 1
 
     def drawCalendarHorizontalLine_(self, painter, rect):
         xs_ = rect.left()
         xe_ = rect.right()
-        painter.drawLine(xs_, self.ys[1], xe_, self.ys[1])
-        painter.drawLine(xs_, self.ys[2], xe_, self.ys[2])
+        for i in range(1, self.rowCount()):
+            painter.drawLine(xs_, self.ys[i], xe_, self.ys[i])
 
     def drawCalendarVerticalLine_(self, painter, i, top, bottom, pen4text = None):
         yhigh = top
@@ -104,7 +137,7 @@ class CalendarDrawingInfo():
 
     def drawItemBackground(self, painter, top, bottom, pen4line):
         painter.setPen(pen4line)
-        self.drawCalendarVerticalLine_(painter, CALENDAR_DAY, top, bottom)
+        self.drawCalendarVerticalLine_(painter, self.chart, top, bottom)
 
 
 class GanttHeaderView(QtGui.QHeaderView):
@@ -116,6 +149,7 @@ class GanttHeaderView(QtGui.QHeaderView):
         self.pen4line = QPen(color)
         self.pen4text = QPen(Qt.darkGray)
         self.sectionResized.connect(self._adjustSectionSize)
+        self.cdi = CalendarDrawingInfo()
 
     def resizeEvent(self, event):
         super(GanttHeaderView, self).resizeEvent(event)
@@ -139,9 +173,8 @@ class GanttHeaderView(QtGui.QHeaderView):
         sv = self.ganttWidget.getChartScrollBar().value()
         painter.translate(-sv, 0)
         rect.setRight(rect.right() + sv)
-        cdi = CalendarDrawingInfo()
-        cdi.prepare(painter, rect, self.ganttWidget.ganttModel.start, self.ganttWidget.ganttModel.end + _ONEDAY)
-        cdi.drawHeader(painter, rect, self.pen4line, self.pen4text)
+        self.cdi.prepare(painter, rect, self.ganttWidget.ganttModel.start, self.ganttWidget.ganttModel.end + _ONEDAY)
+        self.cdi.drawHeader(painter, rect, self.pen4line, self.pen4text)
         painter.restore()
 
 class ChartScrollBar(QtGui.QScrollBar):
@@ -169,9 +202,7 @@ class ChartScrollBar(QtGui.QScrollBar):
         """スクロールバーの最大値を設定、必要あれば現在値も修正する"""
         self.setMaximum(self.ganttWidget.preferableWidth() - self.ganttWidget.header().sectionSize(COLUMN_CHART))
 
-    def adjustScrollPosition(self, value):
-        #print("adjustScrollPosition", value, self.updatesEnabled())
-        #self.ganttWidget.paintEvent(QtGui.QPaintEvent(QRect(0,0,1004,639)))
+    def adjustScrollPosition(self):
         self.ganttWidget.header().headerDataChanged(Qt.Horizontal, COLUMN_CHART, COLUMN_CHART)
         self.ganttWidget.headerItem().emitDataChanged()
 
@@ -186,7 +217,7 @@ class Widget_(QtGui.QTreeWidget):
         self.pen4chartBoundary = QPen(QColor(128,128,128,128))
         self.brush4chartFill = QBrush(QColor(0,64,64,128))
         self.brush4chartFillProgress = QBrush(QColor(255,0,0,128))
-        self.cdi = None
+        self.cdi = CalendarDrawingInfo()
         self.setHeaderLabels(["項目名","開始日","終了日","担当者", ""])
 
     @property
@@ -218,13 +249,12 @@ class Widget_(QtGui.QTreeWidget):
 
     def xpos(self, dt):
         tdelta = dt - self.ganttModel.start
-        return tdelta.days * DAY_WIDTH
+        return tdelta.days * self.cdi.dayWidth
 
     def paintEvent(self, e):
         rect = e.rect()
         #print("paintEvnt", rect)
         rect.setLeft(self.columnViewportPosition(COLUMN_CHART))
-        self.cdi = CalendarDrawingInfo()
         self.cdi.prepare(None, rect, self.ganttModel.start, self.ganttModel.end + _ONEDAY)
         super(Widget_, self).paintEvent(e)
 
@@ -256,7 +286,6 @@ class Widget_(QtGui.QTreeWidget):
         return QRect(x1, y-CHART_HEIGHT/2, x2-x1, CHART_HEIGHT)
 
     def drawChart(self, painter, task, chartRect):
-        #painter.drawLine(x1, y, x2, y)
         painter.fillRect(chartRect, self.brush4chartFill)
         painter.setPen(self.pen4chartBoundary)
         painter.drawRect(chartRect)
@@ -278,6 +307,13 @@ class Widget_(QtGui.QTreeWidget):
     def getChartScrollBar(self):
         """チャート部用のスクロールバーを取得する"""
         return self._csb
+
+    def setDayWidth(self, value):
+        if value < 0:
+            return
+        self.cdi.dayWidth = value
+        self.header().cdi.dayWidth = value
+        self.getChartScrollBar().adjustScrollPosition()
 
 class GanttWidget(Widget_):
     #-----------------------------------------------------------------------
@@ -486,13 +522,20 @@ class GanttWidget(Widget_):
         self.saveFile(self._currentFileName)
 
     def timescaleDay(self, action):
-        pass
+        self._timescale(TIMESCALE_DAY)
 
     def timescaleWeek(self, action):
-        pass
+        self._timescale(TIMESCALE_WEEK)
 
     def timescaleMonth(self, action):
-        pass
+        self._timescale(TIMESCALE_MONTH)
+
+    def _timescale(self, timescale):
+        self.setDayWidth(timescale.WIDTH)
+        self.header().cdi.year = timescale.YEAR
+        self.header().cdi.month = timescale.MONTH
+        self.header().cdi.day = timescale.DAY
+        self.cdi.chart = timescale.CHART
 
     #---------------------------------------------------------------------------
     def taskChanged(self, item, column):

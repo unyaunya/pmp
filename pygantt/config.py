@@ -38,10 +38,12 @@ class Config(object):
     def addLastUsed(self, file):
         try:
             n = self._lastUsed.index(file)
+            del self._lastUsed[n]
         except:
-            self._lastUsed.insert(0, file)
-            if len(self._lastUsed) > MAX_LASTUSED:
-                self._lastUsed = self._lastUsed[0:MAX_LASTUSED]
+            pass
+        self._lastUsed.insert(0, file)
+        if len(self._lastUsed) > MAX_LASTUSED:
+            self._lastUsed = self._lastUsed[0:MAX_LASTUSED]
         self.save()
 
     def save(self):

@@ -4,6 +4,7 @@
 import os, json
 import sys
 import configparser
+from argparse import Namespace
 from PyQt4 import QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar
 from pygantt import TaskModel, Task, GanttWidget
@@ -66,38 +67,43 @@ class MainWindow(QtGui.QMainWindow):
     def _currentFileChanged(self, newFileName):
         self.setWindowTitle(newFileName)
 
-    def _createAction(self, name, func):
+    def _createAction(self, name, func, shortcut = None):
         action = QAction(name, self)
+        if shortcut is not None:
+            if isinstance(shortcut, str):
+                action.setShortcut(QtGui.QKeySequence.fromString(shortcut))
+            else:
+                action.setShortcut(shortcut)
         action.triggered.connect(func)
-        self.actions[name] = action
+        return action
 
     def createActions(self):
-        self.actions = {}
         gw = self.ganttWidget
-        self._createAction('Open', gw.open)
-        self._createAction('Save', gw.save)
-        self._createAction('SaveAs', gw.saveAs)
-        self._createAction('Exit', self.exit)
-        self._createAction('Insert', gw.insert)
-        self._createAction('Remove', gw.remove)
-        self._createAction('LevelUp', gw.levelUp)
-        self._createAction('LevelDown', gw.levelDown)
+        self.actions = Namespace()
+        self.actions.open = self._createAction('開く', gw.open, "Ctrl+O")
+        self.actions.save = self._createAction('上書き保存', gw.save, "Ctrl+S")
+        self.actions.saveAs = self._createAction('名前をつけて保存', gw.saveAs)
+        self.actions.exit = self._createAction('終了', self.exit, "Alt+F4")
+        self.actions.insert = self._createAction('タスクを挿入', gw.insert, "Ctrl+Insert")
+        self.actions.remove = self._createAction('タスクを削除', gw.remove, "Ctrl+Delete")
+        self.actions.levelUp = self._createAction('レベルを上げる', gw.levelUp, "Ctrl+Left")
+        self.actions.levelDown = self._createAction('レベルを下げる', gw.levelDown, "Ctrl+Right")
 
     def createMenus(self):
         menuBar = self.menuBar()
         if True:
-            fileMenu = menuBar.addMenu("File")
-            fileMenu.addAction(self.actions['Open'])
-            fileMenu.addAction(self.actions['Save'])
-            fileMenu.addAction(self.actions['SaveAs'])
+            fileMenu = menuBar.addMenu("ファイル")
+            fileMenu.addAction(self.actions.open)
+            fileMenu.addAction(self.actions.save)
+            fileMenu.addAction(self.actions.saveAs)
             fileMenu.addSeparator()
-            fileMenu.addAction(self.actions['Exit'])
-            editMenu = menuBar.addMenu("Edit")
-            editMenu.addAction(self.actions['Insert'])
-            editMenu.addAction(self.actions['Remove'])
+            fileMenu.addAction(self.actions.exit)
+            editMenu = menuBar.addMenu("編集")
+            editMenu.addAction(self.actions.insert)
+            editMenu.addAction(self.actions.remove)
             editMenu.addSeparator()
-            editMenu.addAction(self.actions['LevelUp'])
-            editMenu.addAction(self.actions['LevelDown'])
+            editMenu.addAction(self.actions.levelUp)
+            editMenu.addAction(self.actions.levelDown)
 
     #---------------------------------------------------------------------------
     #   アクション

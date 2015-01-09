@@ -65,7 +65,8 @@ class CalendarDrawingInfo():
         pdate = date
         prev_week = date
         x += self.dayWidth
-        while date <= end:
+        #while date <= end:
+        while x <= xe_:
             date += _ONEDAY
             #-----------------------
             if pdate.day != date.day:
@@ -211,7 +212,9 @@ class ChartScrollBar(QtGui.QScrollBar):
 
     def _adjustScrollBar(self):
         """スクロールバーの最大値を設定、必要あれば現在値も修正する"""
-        self.setMaximum(self.ganttWidget.preferableWidth() - self.ganttWidget.header().sectionSize(COLUMN_CHART))
+        value = self.ganttWidget.preferableWidth() - self.ganttWidget.header().sectionSize(COLUMN_CHART)
+        self.setMaximum(max(0, value))
+        print("_adjustScrollBar(%d -> %d)" % (value, self.maximum()))
 
     def adjustScrollPosition(self):
         self.ganttWidget.header().headerDataChanged(Qt.Horizontal, COLUMN_CHART, COLUMN_CHART)
@@ -548,6 +551,8 @@ class GanttWidget(Widget_):
         self.header().cdi.week = timescale.WEEK
         self.header().cdi.day = timescale.DAY
         self.cdi.chart = timescale.CHART
+        self.getChartScrollBar()._adjustScrollBar()
+        self.getChartScrollBar().adjustScrollPosition()
 
     #---------------------------------------------------------------------------
     def taskChanged(self, item, column):

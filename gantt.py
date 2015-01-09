@@ -5,7 +5,7 @@ import os, json
 import sys
 import configparser
 from argparse import Namespace
-from PyQt4 import QtGui
+from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar
 from pygantt import TaskModel, Task, GanttWidget
 from pygantt.config import config
@@ -78,6 +78,9 @@ class MainWindow(QtGui.QMainWindow):
         return action
 
     def createActions(self):
+        def dummy(action):
+            print("Action(%s)" % action.text())
+
         gw = self.ganttWidget
         self.actions = Namespace()
         self.actions.open = self._createAction(gw.open, '開く', "Ctrl+O")
@@ -93,6 +96,9 @@ class MainWindow(QtGui.QMainWindow):
         self.actions.day = self._createAction(gw.timescaleDay, '1日', "Ctrl+D")
         self.actions.week = self._createAction(gw.timescaleWeek, '1週間', "Ctrl+W")
         self.actions.month = self._createAction(gw.timescaleMonth, '1月', "Ctrl+M")
+        self.actions.print = self._createAction(self.printAction, '印刷', "Ctrl+P")
+        self.actions.preview = self._createAction(self.printPreview, '印刷プレビュー')
+        self.actions.pageSettings = self._createAction(self.pageSettings, 'ページ設定')
 
     def createMenus(self):
         menuBar = self.menuBar()
@@ -101,6 +107,10 @@ class MainWindow(QtGui.QMainWindow):
             fileMenu.addAction(self.actions.open)
             fileMenu.addAction(self.actions.save)
             fileMenu.addAction(self.actions.saveAs)
+            fileMenu.addSeparator()
+            fileMenu.addAction(self.actions.print)
+            fileMenu.addAction(self.actions.preview)
+            fileMenu.addAction(self.actions.pageSettings)
             fileMenu.addSeparator()
             fileMenu.addAction(self.actions.exit)
             editMenu = menuBar.addMenu("編集")
@@ -115,6 +125,23 @@ class MainWindow(QtGui.QMainWindow):
             timescaleMenu.addAction(self.actions.day)
             timescaleMenu.addAction(self.actions.week)
             timescaleMenu.addAction(self.actions.month)
+            miscMenu = menuBar.addMenu("その他")
+
+    def drawing(self, painter):
+        painter.drawRect(-49,-49,98,98)
+        painter.drawEllipse(QtCore.QPoint(0,0),49,49)
+
+    def print(self, printer):
+        painter = QtGui.QPainter(printer)
+        rect = painter.viewport()
+        side = min(rect.width(), rect.height())
+        painter.setViewport((rect.width() - side) / 2, (rect.height() - side) / 2, side, side)
+        painter.setWindow(-50, -50, 100, 100)
+        for i in range(3):
+            if i > 0:
+                printer.newPage()
+                self.drawing(painter)
+        print(printer)
 
     #---------------------------------------------------------------------------
     #   アクション
@@ -122,6 +149,20 @@ class MainWindow(QtGui.QMainWindow):
     def exit(self):
         sys.exit()
 
+    def printAction(self):
+        printer = QtGui.QPrinter()
+        dialog = QtGui.QPrintDialog(printer)
+        if dialog.exec():
+            self.print(printer)
+
+    def printPreview(self):
+        printer = QtGui.QPrinter()
+        preview = QtGui.QPrintPreviewDialog(printer)
+        preview.paintRequested.connect(self.print)
+        preview.exec()
+
+    def pageSettings(self):
+        pass
 
 def main():
     app = QtGui.QApplication(sys.argv)

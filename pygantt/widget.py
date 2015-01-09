@@ -176,7 +176,6 @@ class ChartScrollBar(QtGui.QScrollBar):
         self.ganttWidget.headerItem().emitDataChanged()
 
 
-
 class Widget_(QtGui.QTreeWidget):
     def __init__(self, model = TaskModel()):
         super(Widget_, self).__init__()

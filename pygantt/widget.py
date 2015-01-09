@@ -8,25 +8,9 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt, QModelIndex, QPoint, QRect
 from PyQt4.QtGui import QBrush, QPen, QColor, QFontMetrics, QFileDialog
 from .util import s2dt, dt2s
-from .settings import Settings
+from .settings import *
 from .model import Task, TaskModel
 from .config import config
-
-DEBUG=True
-
-DAY_WIDTH = 16
-COLUMN_NAME  = 0
-COLUMN_CHART = 4
-CALENDAR_BOTTOM_MARGIN = 3
-CALENDAR_LEFT_MARGIN = 3
-CHART_HEIGHT = 12
-PROGRESST_HEIGHT = 8
-
-CALENDAR_TOP    = 0
-CALENDAR_YEAR   = 0
-CALENDAR_MONTH  = 1
-CALENDAR_DAY    = 2
-CALENDAR_BOTTOM = 3
 
 _ONEDAY = timedelta(days=1)
 
@@ -193,9 +177,8 @@ class ChartScrollBar(QtGui.QScrollBar):
 
 
 class Widget_(QtGui.QTreeWidget):
-    def __init__(self, settings = Settings(), model = TaskModel()):
+    def __init__(self, model = TaskModel()):
         super(Widget_, self).__init__()
-        self.settings = settings
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self._csb = ChartScrollBar(self)
         self.setHeader(GanttHeaderView(self))
@@ -305,8 +288,8 @@ class GanttWidget(Widget_):
     #-----------------------------------------------------------------------
     # コンストラクタ
     #-----------------------------------------------------------------------
-    def __init__(self, settings = Settings(), model = None):
-        super(GanttWidget, self).__init__(settings)
+    def __init__(self, model = None):
+        super(GanttWidget, self).__init__()
         #-----------------------------------------------------------------------
         self._currentFileName = None
         self._path = None
@@ -501,6 +484,15 @@ class GanttWidget(Widget_):
         if len(fileName) <= 0:
             return
         self.saveFile(self._currentFileName)
+
+    def timescaleDay(self, action):
+        pass
+
+    def timescaleWeek(self, action):
+        pass
+
+    def timescaleMonth(self, action):
+        pass
 
     #---------------------------------------------------------------------------
     def taskChanged(self, item, column):

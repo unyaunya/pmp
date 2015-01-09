@@ -90,6 +90,9 @@ class MainWindow(QtGui.QMainWindow):
         self.actions.levelDown = self._createAction(gw.levelDown, 'レベルを下げる', "Ctrl+Right")
         self.actions.up = self._createAction(gw.up, '一つ上に移動する', "Ctrl+Up")
         self.actions.down = self._createAction(gw.down, '一つ下に移動する', "Ctrl+Down")
+        self.actions.day = self._createAction(gw.timescaleDay, '1日', "Ctrl+D")
+        self.actions.week = self._createAction(gw.timescaleWeek, '1週間', "Ctrl+W")
+        self.actions.month = self._createAction(gw.timescaleMonth, '1月', "Ctrl+M")
 
     def createMenus(self):
         menuBar = self.menuBar()
@@ -108,6 +111,10 @@ class MainWindow(QtGui.QMainWindow):
             editMenu.addAction(self.actions.down)
             editMenu.addAction(self.actions.levelUp)
             editMenu.addAction(self.actions.levelDown)
+            timescaleMenu = menuBar.addMenu("タイムスケール")
+            timescaleMenu.addAction(self.actions.day)
+            timescaleMenu.addAction(self.actions.week)
+            timescaleMenu.addAction(self.actions.month)
 
     #---------------------------------------------------------------------------
     #   アクション

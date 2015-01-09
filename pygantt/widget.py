@@ -329,6 +329,9 @@ class Widget_(QtGui.QTreeWidget):
         self.header().cdi.dayWidth = value
         self.getChartScrollBar().adjustScrollPosition()
 
+    def refresh(self):
+        self.getChartScrollBar().adjustScrollPosition()
+
 class GanttWidget(Widget_):
     #-----------------------------------------------------------------------
     # Qtシグナル

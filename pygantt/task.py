@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from .util import s2dt, dt
 
 class Task(object):
@@ -62,6 +62,30 @@ class Task(object):
         if index < 0 or index >= len(self.children):
             return None
         return self.children[index]
+
+    def minimumDate(self):
+        if len(self.children) <= 0:
+            return self.start
+        val = datetime.max
+        for task in self.children:
+            d = task.minimumDate()
+            if d < val:
+                val = d
+        return val
+
+    def maximumDate(self):
+        if len(self.children) <= 0:
+            return self.end
+        val = datetime.min
+        for task in self.children:
+            d = task.maximumDate()
+            if d > val:
+                val = d
+        return val
+
+    def adjustDate(self):
+        self.start = self.minimumDate()
+        self.end = self.maximumDate()
 
     @staticmethod
     def defaultTask():

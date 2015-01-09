@@ -67,7 +67,7 @@ class MainWindow(QtGui.QMainWindow):
     def _currentFileChanged(self, newFileName):
         self.setWindowTitle(newFileName)
 
-    def _createAction(self, name, func, shortcut = None):
+    def _createAction(self, func, name, shortcut = None):
         action = QAction(name, self)
         if shortcut is not None:
             if isinstance(shortcut, str):
@@ -80,14 +80,16 @@ class MainWindow(QtGui.QMainWindow):
     def createActions(self):
         gw = self.ganttWidget
         self.actions = Namespace()
-        self.actions.open = self._createAction('開く', gw.open, "Ctrl+O")
-        self.actions.save = self._createAction('上書き保存', gw.save, "Ctrl+S")
-        self.actions.saveAs = self._createAction('名前をつけて保存', gw.saveAs)
-        self.actions.exit = self._createAction('終了', self.exit, "Alt+F4")
-        self.actions.insert = self._createAction('タスクを挿入', gw.insert, "Ctrl+Insert")
-        self.actions.remove = self._createAction('タスクを削除', gw.remove, "Ctrl+Delete")
-        self.actions.levelUp = self._createAction('レベルを上げる', gw.levelUp, "Ctrl+Left")
-        self.actions.levelDown = self._createAction('レベルを下げる', gw.levelDown, "Ctrl+Right")
+        self.actions.open = self._createAction(gw.open, '開く', "Ctrl+O")
+        self.actions.save = self._createAction(gw.save, '上書き保存', "Ctrl+S")
+        self.actions.saveAs = self._createAction(gw.saveAs, '名前をつけて保存')
+        self.actions.exit = self._createAction(self.exit, '終了', "Alt+F4")
+        self.actions.insert = self._createAction(gw.insert, 'タスクを挿入', "Ctrl+Insert")
+        self.actions.remove = self._createAction(gw.remove, 'タスクを削除', "Ctrl+Delete")
+        self.actions.levelUp = self._createAction(gw.levelUp, 'レベルを上げる', "Ctrl+Left")
+        self.actions.levelDown = self._createAction(gw.levelDown, 'レベルを下げる', "Ctrl+Right")
+        self.actions.up = self._createAction(gw.up, '一つ上に移動する', "Ctrl+Up")
+        self.actions.down = self._createAction(gw.down, '一つ下に移動する', "Ctrl+Down")
 
     def createMenus(self):
         menuBar = self.menuBar()
@@ -102,6 +104,8 @@ class MainWindow(QtGui.QMainWindow):
             editMenu.addAction(self.actions.insert)
             editMenu.addAction(self.actions.remove)
             editMenu.addSeparator()
+            editMenu.addAction(self.actions.up)
+            editMenu.addAction(self.actions.down)
             editMenu.addAction(self.actions.levelUp)
             editMenu.addAction(self.actions.levelDown)
 

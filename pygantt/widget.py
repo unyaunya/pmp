@@ -443,7 +443,42 @@ class GanttWidget(Widget_):
         #対象タスクをカレントタスクにする
         self.setCurrentItem(ci)
 
-    def open(self):
+    def up(self, action):
+        """同一レベル内で一つ上に移動する"""
+        (ci, index, parent, parentTask) = self._get_item_info()
+        if ci is None:
+            return
+        newIndex = index - 1
+        if newIndex < 0:
+            #すでに一番上にいるなら処理を行わない
+            return
+        #一つ上の位置に挿入する
+        self._move(ci, newIndex, parent, parentTask)
+
+    def down(self, action):
+        """同一レベル内で一つ下に移動する"""
+        (ci, index, parent, parentTask) = self._get_item_info()
+        if ci is None:
+            return
+        newIndex = index + 1
+        if parent.childCount() <= newIndex:
+            #すでに一番下にいるなら処理を行わない
+            return
+        #一つ下の位置に挿入する
+        self._move(ci, newIndex, parent, parentTask)
+
+    def _move(self, ci, newIndex, parent, parentTask):
+        #一旦、親アイテムから離脱する
+        parentTask.children.remove(ci.task)
+        parent.removeChild(ci)
+        #新しい位置に挿入する
+        parent.insertChild(newIndex, ci)
+        parentTask.children.insert(newIndex, ci.task)
+        self._sync_expand_collapse([ci])
+        #対象タスクをカレントタスクにする
+        self.setCurrentItem(ci)
+
+    def open(self, action):
         """ファイルを開く"""
         fileName = QFileDialog.getOpenFileName(self,
                         'ファイルを開く', self.workingDirectory)

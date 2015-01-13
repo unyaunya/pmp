@@ -12,17 +12,28 @@ from .settings import *
 from .model import Task, TaskModel
 from .config import config
 from .treewidgetitem import TreeWidgetItem
+from .qtutil import tuple2color
 
 _ONEDAY = timedelta(days=1)
 
 class CalendarDrawingInfo():
     def __init__(self):
-        self._dayWidth = TIMESCALE_DAY.WIDTH
-        self.year = True
-        self.month = True
-        self.week = False
-        self.day = True
-        self.chart = CALENDAR.DAY
+        if False:
+            self._dayWidth = TIMESCALE_DAY.WIDTH
+            self.year = True
+            self.month = True
+            self.week = False
+            self.day = True
+            self.chart = CALENDAR.DAY
+        self.setTimescale(TIMESCALE_MONTH)
+
+    def setTimescale(self, timescale):
+        self._dayWidth = timescale.WIDTH
+        self.year = timescale.YEAR
+        self.month = timescale.MONTH
+        self.week = timescale.WEEK
+        self.day = timescale.DAY
+        self.chart = timescale.CHART
 
     def rowCount(self):
         n = 0
@@ -229,11 +240,15 @@ class Widget_(QtGui.QTreeWidget):
         self._csb = ChartScrollBar(self)
         self.setHeader(GanttHeaderView(self))
         self.ganttModel = model
-        self.pen4chartBoundary = QPen(QColor(128,128,128,128))
-        self.brush4chartFill = QBrush(QColor(0,64,64,128))
-        self.brush4chartFillProgress = QBrush(QColor(255,0,0,128))
+
+        self.pen4chartBoundary = QPen(tuple2color(CHART_BOUNDARY_COLOR))
+        self.brush4chartFill = QBrush(tuple2color(CHART_COLOR))
+        self.brush4chartFillProgress = QBrush(tuple2color(PROGRESS_COLOR))
         self.cdi = CalendarDrawingInfo()
         self.setHeaderLabels(HEADER_LABELS)
+        for i in range(len(COLUMN_WIDTHS)):
+            self.header().resizeSection(i, COLUMN_WIDTHS[i])
+
 
     @property
     def ganttModel(self):
@@ -394,8 +409,9 @@ class GanttWidget(Widget_):
             print("save %s" % fileName)
             self._workingDirectory = os.path.dirname(fileName)
             TaskModel.dump(self.ganttModel, fileName)
-            self._currentFileName = fileName
-            self.currentFileChanged.emit(self._currentFileName)
+            self.load(fileName)
+            #self._currentFileName = fileName
+            #self.currentFileChanged.emit(self._currentFileName)
         except:
             if DEBUG:
                 raise
@@ -541,7 +557,7 @@ class GanttWidget(Widget_):
                         'ファイルを保存する', self.workingDirectory)
         if len(fileName) <= 0:
             return
-        self.saveFile(self._currentFileName)
+        self.saveFile(fileName)
 
     def timescaleDay(self, action):
         self._timescale(TIMESCALE_DAY)

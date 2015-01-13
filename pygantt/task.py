@@ -10,6 +10,9 @@ class Task(object):
 
     def __init__(self, name='(未定)', start=None, end=None, pv=0, ev=0):
         self._uuid = uuid.uuid4()
+        self._pv = 0
+        self._ev = 0
+        #------------------------
         self.name = name
         self.start = start
         self.end = end
@@ -44,7 +47,10 @@ class Task(object):
 
     @pv.setter
     def pv(self, value):
-        self._pv = max(0, value)
+        newValue = max(0, value)
+        if newValue == self._pv:
+            return
+        self._pv = newValue
 
     @property
     def ev(self):

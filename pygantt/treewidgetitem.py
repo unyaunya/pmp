@@ -27,7 +27,7 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
     def dataChanged2(self, column):
         task = self.task
         if column == COLUMN_NAME:
-            task.name = item.name
+            task.name = self.name
         elif column == COLUMN_START:
             task.start = s2dt(self.start)
         elif column == COLUMN_END:
@@ -37,15 +37,20 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         elif column == COLUMN_EV:
             task.ev = int(self.ev)
 
+    def data(self, column, role):
+        if self.childCount() > 0:
+            if role == Qt.DisplayRole:
+                if column == COLUMN_PV:
+                    return sum(int(item.pv) for item in self.childItems())
+                elif column == COLUMN_EV:
+                    return sum(int(item.ev) for item in self.childItems())
+        return super(TreeWidgetItem, self).data(column, role)
+
     def childItems(self):
         items = []
         for i in range(self.childCount()):
             items.append(self.child(i))
         return items
-
-    def itemProperty(func):
-        """デコレータ"""
-        pass
 
     @property
     def task(self):

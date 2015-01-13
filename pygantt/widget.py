@@ -232,7 +232,7 @@ class Widget_(QtGui.QTreeWidget):
         self.brush4chartFill = QBrush(QColor(0,64,64,128))
         self.brush4chartFillProgress = QBrush(QColor(255,0,0,128))
         self.cdi = CalendarDrawingInfo()
-        self.setHeaderLabels(["項目名","開始日","終了日","担当者", ""])
+        self.setHeaderLabels(HEADER_LABELS)
 
     @property
     def ganttModel(self):
@@ -343,6 +343,10 @@ class GanttWidget(Widget_):
     #-----------------------------------------------------------------------
     def __init__(self, model = None):
         super(GanttWidget, self).__init__()
+        #-----------------------------------------------------------------------
+        self.dateEditDelegate = DateEditDelegate()
+        #self.setItemDelegateForColumn(COLUMN_START, self.dateEditDelegate)
+        #self.setItemDelegateForColumn(COLUMN_END, self.dateEditDelegate)
         #-----------------------------------------------------------------------
         self._currentFileName = None
         self._path = None
@@ -559,16 +563,15 @@ class GanttWidget(Widget_):
 
     #---------------------------------------------------------------------------
     def taskChanged(self, item, column):
-        task = item.task
-        if column == 0:
-            task.name = item.name
-        if column == 1:
-            task.start = s2dt(item.start)
-        if column == 2:
-            task.end = s2dt(item.end)
+        item.dataChanged2(column)
 
     def taskExpanded(self, item):
         item.task.expanded = True
 
     def taskCollapsed(self, item):
         item.task.expanded = False
+
+
+class DateEditDelegate(QtGui.QStyledItemDelegate):
+    pass
+

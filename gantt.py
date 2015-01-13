@@ -240,7 +240,6 @@ class ProjectInfoDialog(QtGui.QDialog):
         self._model().start = QDate2datetime(self.startDate.date())
         self._model().end = QDate2datetime(self.endDate.date())
         self.mainWindow.ganttWidget.ganttModel = self._model()
-        #self.mainWindow.ganttWidget.refresh()
 
 
 def main():

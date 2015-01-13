@@ -1,7 +1,6 @@
 #! python3
 # -*- coding: utf-8 -*-
 
-import uuid
 from datetime import datetime, timedelta
 from .util import s2dt, dt
 
@@ -9,7 +8,6 @@ class Task(object):
     """Taskクラス"""
 
     def __init__(self, name='(未定)', start=None, end=None, pv=0, ev=0):
-        self._uuid = uuid.uuid4()
         self._pv = 0
         self._ev = 0
         #------------------------

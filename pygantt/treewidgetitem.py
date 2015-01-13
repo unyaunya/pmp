@@ -1,6 +1,8 @@
 #! python3
 # -*- coding: utf-8 -*-
 
+import uuid
+
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt, QModelIndex
 from .util import s2dt, dt2s
@@ -9,6 +11,7 @@ from .settings import *
 class TreeWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, task=None):
         super(TreeWidgetItem, self).__init__()
+        self._uuid = uuid.uuid4()
         if task is not None:
             self.taskToItem(task)
 
@@ -51,6 +54,19 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         for i in range(self.childCount()):
             items.append(self.child(i))
         return items
+
+    def findFromUuid(self, uuid):
+        if self.uuid == uuid:
+            return self
+        for child in self.childItems():
+            item = child.findFromUuid(uuid)
+            if item is not None:
+                return item
+        return None
+
+    @property
+    def uuid(self):
+        return self._uuid
 
     @property
     def task(self):
@@ -99,6 +115,9 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
     @ev.setter
     def ev(self, value):
         self.setData(COLUMN_EV, Qt.DisplayRole, value)
+
+    def clone(self):
+        return TreeWidgetItem(self.task)
 
     @staticmethod
     def Items(tasks):

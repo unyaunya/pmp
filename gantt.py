@@ -97,6 +97,13 @@ class MainWindow(QtGui.QMainWindow):
         self.actions.levelDown = self._createAction(gw.levelDown, 'レベルを下げる', "Ctrl+Right")
         self.actions.up = self._createAction(gw.up, '一つ上に移動する', "Ctrl+Up")
         self.actions.down = self._createAction(gw.down, '一つ下に移動する', "Ctrl+Down")
+
+        self.actions.setSelectModeRow = self._createAction(self.setSelectModeRow, '行選択', "Ctrl+1")
+        self.actions.setSelectModeCell = self._createAction(self.setSelectModeCell, 'セル選択', "Ctrl+2")
+
+        self.actions.copy = self._createAction(gw.copy, 'コピー', "Ctrl+C")
+        self.actions.paste = self._createAction(gw.paste, '貼付け', "Ctrl+V")
+
         self.actions.day = self._createAction(gw.timescaleDay, '1日', "Ctrl+D")
         self.actions.week = self._createAction(gw.timescaleWeek, '1週間', "Ctrl+W")
         self.actions.month = self._createAction(gw.timescaleMonth, '1月', "Ctrl+M")
@@ -121,6 +128,9 @@ class MainWindow(QtGui.QMainWindow):
             fileMenu.addSeparator()
             fileMenu.addAction(self.actions.exit)
             editMenu = menuBar.addMenu("編集")
+            editMenu.addAction(self.actions.copy)
+            editMenu.addAction(self.actions.paste)
+            editMenu.addSeparator()
             editMenu.addAction(self.actions.insert)
             editMenu.addAction(self.actions.remove)
             editMenu.addSeparator()
@@ -132,6 +142,9 @@ class MainWindow(QtGui.QMainWindow):
             timescaleMenu.addAction(self.actions.day)
             timescaleMenu.addAction(self.actions.week)
             timescaleMenu.addAction(self.actions.month)
+            selectionModeMenu = menuBar.addMenu("選択モード")
+            selectionModeMenu.addAction(self.actions.setSelectModeRow)
+            selectionModeMenu.addAction(self.actions.setSelectModeCell)
             configMenu = menuBar.addMenu("設定")
             configMenu.addAction(self.actions.projectInfo)
             miscMenu = menuBar.addMenu("その他")
@@ -176,6 +189,14 @@ class MainWindow(QtGui.QMainWindow):
         dialog = ProjectInfoDialog(self)
         rslt = dialog.exec_()
         print(rslt)
+
+    def setSelectModeRow(self):
+        self.ganttWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.ganttWidget.refresh()
+
+    def setSelectModeCell(self):
+        self.ganttWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
+        self.ganttWidget.refresh()
 
     def about(self):
         QtGui.QMessageBox.about(self, APPLICATION_NAME, "分かりません")

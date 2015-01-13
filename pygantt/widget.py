@@ -4,6 +4,7 @@
 import os
 
 from datetime import datetime as dt, timedelta
+from uuid import UUID
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt, QModelIndex, QPoint, QRect
 from PyQt4.QtGui import QBrush, QPen, QColor, QFontMetrics, QFileDialog
@@ -249,7 +250,6 @@ class Widget_(QtGui.QTreeWidget):
         for i in range(len(COLUMN_WIDTHS)):
             self.header().resizeSection(i, COLUMN_WIDTHS[i])
 
-
     @property
     def ganttModel(self):
         return self._ganttModel
@@ -420,15 +420,32 @@ class GanttWidget(Widget_):
                 QtGui.QMessageBox.warning(self,
                     "がんと", "<%s>を開けませんでした" % fileName, "OK")
 
+    def itemFromUuid(self, uuid):
+        for i in range(self.topLevelItemCount()):
+            item = self.topLevelItem(i)
+            found = item.findFromUuid(uuid)
+            if found is not None:
+                return found
+        return None
+
+    def insertAfter(self, item, newItem):
+        (ci, index, parent, parentTask) = self._get_item_info(item)
+        parent.insertChild(index+1, newItem)
+        parentTask.children.insert(index+1, newItem.task)
+
     #---------------------------------------------------------------------------
     #   アクション
     #---------------------------------------------------------------------------
-    def insert(self, action):
-        """カレントアイテムの場所に新規タスクを挿入する"""
+    def _insert(self, action):
+        """カレントアイテムの次に新規タスクを挿入する"""
         (ci, index, parent, parentTask) = self._get_item_info()
         newItem = TreeWidgetItem(Task.defaultTask())
-        parent.insertChild(index, newItem)
-        parentTask.children.insert(index, newItem.task)
+        parent.insertChild(index+1, newItem)
+        parentTask.children.insert(index+1, newItem.task)
+
+    def insert(self, action):
+        """カレントアイテムの次に新規タスクを挿入する"""
+        self.insertAfter(None, TreeWidgetItem(Task.defaultTask()))
 
     def remove(self, action):
         """カレントアイテムを削除する"""
@@ -577,6 +594,32 @@ class GanttWidget(Widget_):
         self.cdi.chart = timescale.CHART
         self.getChartScrollBar()._adjustScrollBar()
         self.getChartScrollBar().adjustScrollPosition()
+
+    def copy(self):
+        """未実装"""
+        clipboard = QtGui.QApplication.clipboard()
+        ci = self.currentItem()
+        if ci is None:
+            return
+        clipboard.setText(str(ci.uuid))
+
+    def cut(self):
+        """未実装"""
+        pass
+
+    def paste(self):
+        """未実装"""
+        ci = self.currentItem()
+        if ci is None:
+            return
+        clipboard = QtGui.QApplication.clipboard()
+        uuid = clipboard.text()
+        item = self.itemFromUuid(UUID(uuid))
+        if item is None:
+            return
+        print(uuid, item.name, item.start, item.end)
+        self.insertAfter(ci, item.clone())
+
 
     #---------------------------------------------------------------------------
     def taskChanged(self, item, column):

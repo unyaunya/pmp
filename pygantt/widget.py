@@ -224,6 +224,7 @@ class ChartScrollBar(QtGui.QScrollBar):
 class Widget_(QtGui.QTreeWidget):
     def __init__(self, model = TaskModel()):
         super(Widget_, self).__init__()
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self._csb = ChartScrollBar(self)
         self.setHeader(GanttHeaderView(self))

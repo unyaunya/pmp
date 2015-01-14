@@ -13,7 +13,7 @@ from .settings import *
 from .model import Task, TaskModel
 from .config import config
 from .treewidgetitem import TreeWidgetItem
-from .qtutil import tuple2color
+from qtutil import tuple2color
 
 _ONEDAY = timedelta(days=1)
 
@@ -285,6 +285,7 @@ class Widget_(QtGui.QTreeWidget):
         rect = e.rect()
         #print("paintEvnt", rect)
         rect.setLeft(self.columnViewportPosition(COLUMN_CHART))
+        rect.setRight(rect.right() + self.getChartScrollBar().value())
         self.cdi.prepare(None, rect, self.ganttModel.start, self.ganttModel.end + _ONEDAY)
         super(Widget_, self).paintEvent(e)
 
@@ -436,13 +437,6 @@ class GanttWidget(Widget_):
     #---------------------------------------------------------------------------
     #   アクション
     #---------------------------------------------------------------------------
-    def _insert(self, action):
-        """カレントアイテムの次に新規タスクを挿入する"""
-        (ci, index, parent, parentTask) = self._get_item_info()
-        newItem = TreeWidgetItem(Task.defaultTask())
-        parent.insertChild(index+1, newItem)
-        parentTask.children.insert(index+1, newItem.task)
-
     def insert(self, action):
         """カレントアイテムの次に新規タスクを挿入する"""
         self.insertAfter(None, TreeWidgetItem(Task.defaultTask()))
@@ -596,7 +590,6 @@ class GanttWidget(Widget_):
         self.getChartScrollBar().adjustScrollPosition()
 
     def copy(self):
-        """未実装"""
         clipboard = QtGui.QApplication.clipboard()
         ci = self.currentItem()
         if ci is None:
@@ -608,7 +601,6 @@ class GanttWidget(Widget_):
         pass
 
     def paste(self):
-        """未実装"""
         ci = self.currentItem()
         if ci is None:
             return
@@ -619,7 +611,6 @@ class GanttWidget(Widget_):
             return
         print(uuid, item.name, item.start, item.end)
         self.insertAfter(ci, item.clone())
-
 
     #---------------------------------------------------------------------------
     def taskChanged(self, item, column):

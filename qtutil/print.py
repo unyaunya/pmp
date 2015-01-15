@@ -28,6 +28,7 @@ class PrintHandler(object):
         fromPage = printer.fromPage()
         toPage = printer.toPage()
         painter = QtGui.QPainter(printer)
+        painter.begin(printer)
         firstPage = True
         pageCount = self.pageCount()
         for i in range(1, pageCount+1):
@@ -37,6 +38,7 @@ class PrintHandler(object):
                 printer.newPage()
             self.printPage(painter, i, pageCount)
             firstPage = False
+        painter.end()
 
     def printPage(self, painter, pageNo, pageCount):
         """印刷用のページ描画処理。派生クラスでオーバライド"""

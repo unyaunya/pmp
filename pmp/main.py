@@ -1,29 +1,12 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtGui
+from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QLabel
-from pmp import GanttWidget
+from pmp import GanttWidget, GanttPrintHandler
 from pmp.config import config
 from pmp.settings import *
-from qtutil import App, MainWindow, createAction, QDate2datetime, PrintHandler
-
-class GanttPrintHandler(PrintHandler):
-    def __init__(self, model):
-        super(GanttPrintHandler, self).__init__()
-        self._printer = None
-        self.ganttModel = model
-
-    def printer(self):
-        if self._printer is None:
-            self._printer = QtGui.QPrinter()
-            self._printer.setOrientation(QtGui.QPrinter.Landscape)
-        self._printer.setDocName(self.ganttModel.name)
-        return self._printer
-
-    def pageCount(self):
-        return 5
-
+from qtutil import App, MainWindow, createAction, QDate2datetime
 
 class GanttMainWindow(MainWindow):
     def __init__(self, parent=None):
@@ -115,7 +98,7 @@ class GanttMainWindow(MainWindow):
 
     def printhandler(self):
         if self._printHandler is None:
-            self._printHandler = GanttPrintHandler(self.ganttWidget.ganttModel)
+            self._printHandler = GanttPrintHandler(self.ganttWidget)
         return self._printHandler
 
     #---------------------------------------------------------------------------

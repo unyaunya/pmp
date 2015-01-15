@@ -125,19 +125,19 @@ class CalendarDrawingInfo():
         row = 0
         if self.year:
             index = CALENDAR.YEAR
-            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4text)
+            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4line, pen4text)
             row += 1
         if self.month:
             index = CALENDAR.MONTH
-            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4text)
+            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4line, pen4text)
             row += 1
         if self.week:
             index = CALENDAR.WEEK
-            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4text)
+            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4line, pen4text)
             row += 1
         if self.day:
             index = CALENDAR.DAY
-            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4text)
+            self.drawCalendarVerticalLine_(painter, index, self.ys[row], self.ys[row+1]-1, pen4line, pen4text)
             row += 1
 
     def drawCalendarHorizontalLine_(self, painter, rect):
@@ -146,12 +146,13 @@ class CalendarDrawingInfo():
         for i in range(1, self.rowCount()):
             painter.drawLine(xs_, self.ys[i], xe_, self.ys[i])
 
-    def drawCalendarVerticalLine_(self, painter, i, top, bottom, pen4text = None):
+    def drawCalendarVerticalLine_(self, painter, i, top, bottom, pen4line, pen4text = None):
         yhigh = top
         ylow  = bottom
         ytext = ylow-CALENDAR_BOTTOM_MARGIN
         for j in range(len(self.ts[i])):
             xpos = self.xs[i][j]
+            painter.setPen(pen4line)
             painter.drawLine(xpos, yhigh, xpos, ylow)
             #xpos += CALENDAR_LEFT_MARGIN
             xpos = (self.xs[i][j]+self.xs[i][j+1]-self.bs[i][j].width())/2
@@ -160,8 +161,7 @@ class CalendarDrawingInfo():
                 painter.drawText(xpos, ytext, self.ts[i][j])
 
     def drawItemBackground(self, painter, top, bottom, pen4line):
-        painter.setPen(pen4line)
-        self.drawCalendarVerticalLine_(painter, self.chart, top, bottom)
+        self.drawCalendarVerticalLine_(painter, self.chart, top, bottom, pen4line)
 
 
 class GanttHeaderView(QtGui.QHeaderView):
@@ -333,7 +333,8 @@ class Widget_(QtGui.QTreeWidget):
     def drawItemBackground(self, painter, itemRect):
         #this methhod is called outside paintEvent in MacOS X
         if self.cdi is not None:
-            self.cdi.drawItemBackground(painter, itemRect.top(), itemRect.bottom(), self.pen4chartBoundary)
+            self.cdi.drawItemBackground(painter,
+                    itemRect.top(), itemRect.bottom(), self.pen4chartBoundary)
 
     def getChartScrollBar(self):
         """チャート部用のスクロールバーを取得する"""
@@ -348,6 +349,68 @@ class Widget_(QtGui.QTreeWidget):
 
     def refresh(self):
         self.getChartScrollBar().adjustScrollPosition()
+
+    #def sizeHint(self):
+    #    sh = super(Widget_, self).sizeHint()
+    #    return sh
+
+    def paintRect(self):
+        w = self.columnViewportPosition(COLUMN_CHART)+self.preferableWidth()
+        h = 0
+        it = QtGui.QTreeWidgetItemIterator(self,
+                                    QtGui.QTreeWidgetItemIterator.NotHidden)
+        while it.value():
+            rect = self.visualRect(self.indexFromItem(it.value()))
+            rowHeight = self.rowHeight(self.indexFromItem(it.value()))
+            print(rect, rowHeight)
+            #h += rowHeight
+            h += 20
+            it += 1
+        h += self.header().rect().height()
+        print(self.header().rect())
+        return QRect(0,0,w,h+100)
+
+    def printRectInfo(self):
+        h = 0
+        it = QtGui.QTreeWidgetItemIterator(self,
+                                    QtGui.QTreeWidgetItemIterator.NotHidden)
+        while it.value():
+            rect = self.visualRect(self.indexFromItem(it.value()))
+            rowHeight = self.rowHeight(self.indexFromItem(it.value()))
+            print(rect, rowHeight)
+            #h += rowHeight
+            h += 20
+            it += 1
+        return {'headerHeight': self.header().rect().height(),
+                'headerWidth':  self.columnViewportPosition(COLUMN_CHART),
+                'bodyHeight':   h,
+                'bodyWidth':    self.preferableWidth(),
+                }
+
+    def renderDataHeader(self, pri, painter):
+        """データ部ヘッダ"""
+        self.render(painter, sourceRegion=QtGui.QRegion(
+            0,0,pri['headerWidth'],pri['headerHeight']
+        ))
+
+    def renderDataBody(self, pri, painter):
+        """データ部本体"""
+        self.render(painter, sourceRegion=QtGui.QRegion(
+            0,pri['headerHeight'],pri['headerWidth'],pri['bodyHeight']
+        ))
+
+    def renderChartHeader(self, pri, painter):
+        """チャート部ヘッダ"""
+        self.render(painter, sourceRegion=QtGui.QRegion(
+            pri['headerWidth'],0,pri['bodyWidth'],pri['headerHeight']
+        ))
+
+    def renderChartBody(self, pri, painter):
+        """チャート部本体"""
+        self.render(painter, sourceRegion=QtGui.QRegion(
+            pri['headerWidth'],pri['headerHeight'],pri['bodyWidth'],pri['bodyHeight']
+        ))
+
 
 class GanttWidget(Widget_):
     #-----------------------------------------------------------------------

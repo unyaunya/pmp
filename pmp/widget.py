@@ -13,7 +13,7 @@ from .settings import *
 from .model import Task, TaskModel
 from .config import config
 from .treewidgetitem import TreeWidgetItem
-from qtutil import tuple2color
+from qtutil import tuple2color, tuple2brush
 
 _ONEDAY = timedelta(days=1)
 
@@ -244,8 +244,9 @@ class Widget_(QtGui.QTreeWidget):
         self.ganttModel = model
 
         self.pen4chartBoundary = QPen(tuple2color(CHART_BOUNDARY_COLOR))
-        self.brush4chartFill = QBrush(tuple2color(CHART_COLOR))
-        self.brush4chartFillProgress = QBrush(tuple2color(PROGRESS_COLOR))
+        self.brush4chartFill = tuple2brush(CHART_COLOR)
+        self.brush4chartFillProgress = tuple2brush(PROGRESS_COLOR)
+        self.brush4aggregatedTask = tuple2brush(AGGREGATED_TASK_COLOR)
         self.cdi = CalendarDrawingInfo()
         self.setHeaderLabels(HEADER_LABELS)
         for i in range(len(COLUMN_WIDTHS)):
@@ -302,31 +303,35 @@ class Widget_(QtGui.QTreeWidget):
         painter.translate(-self.getChartScrollBar().value(), 0)
         #----
         self.drawItemBackground(painter, itemRect)
-        task = self.itemFromIndex(index).data(COLUMN_CHART, Qt.UserRole)
-        if task is not None:
-            self.drawChart(painter, task, self._chartRect(task, itemRect))
+        item = self.itemFromIndex(index)
+        self.drawChart(painter, item, self._chartRect(item, itemRect))
         #----
         painter.restore()
 
-    def _chartRect(self, task, rect):
+    def _chartRect(self, item, rect):
         """taskを描画する矩形の座標を算出する"""
         y = (rect.top()+rect.bottom())/2
         x0 = self.columnViewportPosition(COLUMN_CHART)
-        x1 = x0 + self.xpos(task.start)
-        x2 = x0 + self.xpos(task.end+_ONEDAY)
+        x1 = x0 + self.xpos(s2dt(item.start))
+        x2 = x0 + self.xpos(s2dt(item.end)+_ONEDAY)
         #print(x1, x2)
         return QRect(x1, y-CHART_HEIGHT/2, x2-x1, CHART_HEIGHT)
 
-    def drawChart(self, painter, task, chartRect):
-        painter.fillRect(chartRect, self.brush4chartFill)
+    def drawChart(self, painter, item, chartRect):
+        task = item.task
+        if task is None:
+            return
+        painter.fillRect(chartRect,
+            self.brush4aggregatedTask if item.isAggregated()
+            else self.brush4chartFill)
         painter.setPen(self.pen4chartBoundary)
         painter.drawRect(chartRect)
         #--進捗率の表示--
-        if task.pv > 0:
+        if int(item.pv) > 0:
             progressRect = QRect(
                 chartRect.left(),
                 chartRect.top()+(chartRect.height()-PROGRESST_HEIGHT)/2,
-                chartRect.width() * task.ev/task.pv,
+                chartRect.width() * int(item.ev)/int(item.pv),
                 PROGRESST_HEIGHT)
             painter.fillRect(progressRect, self.brush4chartFillProgress)
             painter.drawRect(progressRect)

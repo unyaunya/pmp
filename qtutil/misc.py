@@ -11,6 +11,9 @@ def tuple2color(aTuple):
     (r,g,b,alpha) = aTuple
     return QtGui.QColor(r,g,b,alpha)
 
+def tuple2brush(aTuple):
+    return QtGui.QBrush(tuple2color(aTuple))
+
 def createAction(func, name, shortcut = None):
     """Actionオブジェクト作成用のユーティリティメソッド"""
     action = QtGui.QAction(name, None)

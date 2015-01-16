@@ -7,6 +7,9 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import Qt, QModelIndex
 from .util import s2dt, dt2s
 from .settings import *
+from qtutil import tuple2brush
+
+_aggregatedTaskBrush = tuple2brush(AGGREGATED_TASK_COLOR)
 
 class TreeWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, task=None):
@@ -40,13 +43,23 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         elif column == COLUMN_EV:
             task.ev = int(self.ev)
 
+    def isAggregated(self):
+        return self.childCount() > 0
+
     def data(self, column, role):
         if self.childCount() > 0:
+            #集約タスクの属性は、子タスクの値から算出して表示する
             if role == Qt.DisplayRole:
                 if column == COLUMN_PV:
                     return sum(int(item.pv) for item in self.childItems())
                 elif column == COLUMN_EV:
                     return sum(int(item.ev) for item in self.childItems())
+                elif column == COLUMN_START:
+                    return dt2s(self.task.minimumDate())
+                elif column == COLUMN_END:
+                    return dt2s(self.task.maximumDate())
+            elif role == Qt.ForegroundRole:
+                return _aggregatedTaskBrush
         return super(TreeWidgetItem, self).data(column, role)
 
     def childItems(self):

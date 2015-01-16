@@ -184,7 +184,7 @@ class GanttHeaderView(QtGui.QHeaderView):
 
     def sizeHint(self):
         sh = super(GanttHeaderView, self).sizeHint()
-        sh.setHeight(sh.height()*2.4)
+        sh.setHeight(HEADER_HEIGHT)
         return sh
 
     def paintSection(self, painter, rect, logicalIndex):
@@ -236,6 +236,7 @@ class ChartScrollBar(QtGui.QScrollBar):
 class Widget_(QtGui.QTreeWidget):
     def __init__(self, model = TaskModel()):
         super(Widget_, self).__init__()
+        self.setAlternatingRowColors(True)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self._csb = ChartScrollBar(self)
@@ -349,67 +350,6 @@ class Widget_(QtGui.QTreeWidget):
 
     def refresh(self):
         self.getChartScrollBar().adjustScrollPosition()
-
-    #def sizeHint(self):
-    #    sh = super(Widget_, self).sizeHint()
-    #    return sh
-
-    def paintRect(self):
-        w = self.columnViewportPosition(COLUMN_CHART)+self.preferableWidth()
-        h = 0
-        it = QtGui.QTreeWidgetItemIterator(self,
-                                    QtGui.QTreeWidgetItemIterator.NotHidden)
-        while it.value():
-            rect = self.visualRect(self.indexFromItem(it.value()))
-            rowHeight = self.rowHeight(self.indexFromItem(it.value()))
-            print(rect, rowHeight)
-            #h += rowHeight
-            h += 20
-            it += 1
-        h += self.header().rect().height()
-        print(self.header().rect())
-        return QRect(0,0,w,h+100)
-
-    def printRectInfo(self):
-        h = 0
-        it = QtGui.QTreeWidgetItemIterator(self,
-                                    QtGui.QTreeWidgetItemIterator.NotHidden)
-        while it.value():
-            rect = self.visualRect(self.indexFromItem(it.value()))
-            rowHeight = self.rowHeight(self.indexFromItem(it.value()))
-            print(rect, rowHeight)
-            #h += rowHeight
-            h += 20
-            it += 1
-        return {'headerHeight': self.header().rect().height(),
-                'headerWidth':  self.columnViewportPosition(COLUMN_CHART),
-                'bodyHeight':   h,
-                'bodyWidth':    self.preferableWidth(),
-                }
-
-    def renderDataHeader(self, pri, painter):
-        """データ部ヘッダ"""
-        self.render(painter, sourceRegion=QtGui.QRegion(
-            0,0,pri['headerWidth'],pri['headerHeight']
-        ))
-
-    def renderDataBody(self, pri, painter):
-        """データ部本体"""
-        self.render(painter, sourceRegion=QtGui.QRegion(
-            0,pri['headerHeight'],pri['headerWidth'],pri['bodyHeight']
-        ))
-
-    def renderChartHeader(self, pri, painter):
-        """チャート部ヘッダ"""
-        self.render(painter, sourceRegion=QtGui.QRegion(
-            pri['headerWidth'],0,pri['bodyWidth'],pri['headerHeight']
-        ))
-
-    def renderChartBody(self, pri, painter):
-        """チャート部本体"""
-        self.render(painter, sourceRegion=QtGui.QRegion(
-            pri['headerWidth'],pri['headerHeight'],pri['bodyWidth'],pri['bodyHeight']
-        ))
 
 
 class GanttWidget(Widget_):

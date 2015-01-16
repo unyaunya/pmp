@@ -3,10 +3,10 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QLabel
-from pmp import GanttWidget, GanttPrintHandler
-from pmp.config import config
-from pmp.settings import *
 from qtutil import App, MainWindow, createAction, QDate2datetime
+from pmp import GanttWidget, GanttPrintHandler
+from pmp import config
+from pmp.settings import APPLICATION_NAME
 
 class GanttMainWindow(MainWindow):
     def __init__(self, parent=None):

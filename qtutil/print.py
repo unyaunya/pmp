@@ -28,6 +28,7 @@ class PrintHandler(object):
         fromPage = printer.fromPage()
         toPage = printer.toPage()
         painter = QtGui.QPainter(printer)
+        self.preparePrint(printer)
         painter.begin(printer)
         firstPage = True
         pageCount = self.pageCount()
@@ -39,6 +40,10 @@ class PrintHandler(object):
             self.printPage(painter, i, pageCount)
             firstPage = False
         painter.end()
+
+    def preparePrint(self, printer):
+        """印刷の前準備。派生クラスでオーバライド"""
+        pass
 
     def printPage(self, painter, pageNo, pageCount):
         """印刷用のページ描画処理。派生クラスでオーバライド"""

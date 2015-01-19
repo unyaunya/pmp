@@ -19,9 +19,9 @@ class Task(object):
         self.children = []
         self.expanded = True
 
-    @property
-    def uuid(self):
-        return self._uuid
+    #@property
+    #def uuid(self):
+    #    return self._uuid
 
     @property
     def start(self):

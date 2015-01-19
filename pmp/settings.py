@@ -59,7 +59,7 @@ TIMESCALE_WEEK.DAY = False
 TIMESCALE_WEEK.CHART = CALENDAR.WEEK
 
 TIMESCALE_MONTH = Namespace()
-TIMESCALE_MONTH.WIDTH = 4.0
+TIMESCALE_MONTH.WIDTH = 3.0
 TIMESCALE_MONTH.YEAR = True
 TIMESCALE_MONTH.MONTH = True
 TIMESCALE_MONTH.WEEK = True
@@ -93,6 +93,6 @@ AGGREGATED_TASK_COLOR   = (64,128,255,255)     #チャート塗潰し色
 #-------------------------------------------------------------------------------
 #印刷諸元
 #-------------------------------------------------------------------------------
-ROWS_PER_PAGE = 30          #1ページあたりの行数
+ROWS_PER_PAGE = 63          #1ページあたりの行数
 HEADER_HEIGHT_RATIO = 0.10  #ヘッダ高さの割合(=ヘッダ高さ/ページ高さ)
 HEADER_WIDTH_RATIO = 0.25   #ヘッダ幅の割合(=ヘッダ幅/ページ高さ)

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import uuid
+import copy
 
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt, QModelIndex
@@ -130,8 +131,9 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         self.setData(COLUMN_EV, Qt.DisplayRole, value)
 
     def clone(self):
-        return TreeWidgetItem(self.task)
+        return TreeWidgetItem(copy.deepcopy(self.task))
 
     @staticmethod
     def Items(tasks):
         return [TreeWidgetItem(tasks[i]) for i in range(0, len(tasks))]
+

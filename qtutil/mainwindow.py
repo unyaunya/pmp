@@ -51,7 +51,7 @@ class MainWindow(QtGui.QMainWindow):
         self.printhandler().printPreview()
 
     def pageSettings(self):
-        self.not_implemented()
+        self.printhandler().pageSetting()
 
     def about(self):
         QtGui.QMessageBox.about(self, self.applicationName, "分かりません")

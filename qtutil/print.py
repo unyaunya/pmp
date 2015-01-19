@@ -45,6 +45,11 @@ class PrintHandler(object):
         """印刷の前準備。派生クラスでオーバライド"""
         pass
 
+    def pageSetting(self):
+        printer = self.printer()
+        dialog = QtGui.QPageSetupDialog(printer)
+        dialog.exec()
+
     def printPage(self, painter, pageNo, pageCount):
         """印刷用のページ描画処理。派生クラスでオーバライド"""
         painter.save()

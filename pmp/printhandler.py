@@ -8,14 +8,13 @@ from PyQt4.QtGui import QRegion, QPrinter
 from qtutil import PrintHandler
 from .widget import GanttWidget
 from .settings import ROW_HEIGHT, COLUMN_CHART, HEADER_HEIGHT, COLUMN_WIDTHS
-from .settings import ROWS_PER_PAGE, HEADER_WIDTH_RATIO, HEADER_HEIGHT_RATIO
+from .settings import settings
 
 class GanttPrintHandler(PrintHandler):
     def __init__(self, ganttWidget):
         super(GanttPrintHandler, self).__init__()
         self._printer = None
         self.ganttWidget = ganttWidget
-        self._horizontalPageCount = 1
         self._pri = Namespace()
 
     def printer(self):
@@ -30,13 +29,7 @@ class GanttPrintHandler(PrintHandler):
 
     @property
     def horizontalPageCount(self):
-        return self._horizontalPageCount
-
-    @horizontalPageCount.setter
-    def horizontalPageCount(self, value):
-        if value <= 0:
-            return
-        self._horizontalPageCount = value
+        return settings.print.HORIZONTAL_PAGE_COUNT
 
     def pageCount(self):
         self.preparePrint(self.printer())
@@ -100,14 +93,14 @@ class GanttPrintHandler(PrintHandler):
         obj.log.bodyWidth    = self._widget.preferableWidth()
         obj.log.bodyHeight   = bodyHeight
         obj.log.bodyWidthPerPage = obj.log.bodyWidth / self.horizontalPageCount
-        obj.log.bodyHeightPerPage = ROW_HEIGHT * ROWS_PER_PAGE
+        obj.log.bodyHeightPerPage = ROW_HEIGHT * settings.print.ROWS_PER_PAGE
         obj.log.pageWidth = obj.log.headerWidth + obj.log.bodyWidthPerPage
         obj.log.pageHeight = obj.log.headerHeight + obj.log.bodyHeightPerPage
         pageRect = printer.pageRect()
         obj.dev.pageWidth = pageRect.width()
         obj.dev.pageHeight = pageRect.height()
-        obj.dev.headerWidth = obj.dev.pageWidth * HEADER_WIDTH_RATIO
-        obj.dev.headerHeight = obj.dev.pageHeight * HEADER_HEIGHT_RATIO
+        obj.dev.headerWidth = obj.dev.pageWidth * settings.print.HEADER_WIDTH_RATIO
+        obj.dev.headerHeight = obj.dev.pageHeight * settings.print.HEADER_HEIGHT_RATIO
         obj.dev.bodyWidth    = obj.dev.pageWidth - obj.dev.headerWidth
         obj.dev.bodyHeight   = obj.dev.pageHeight - obj.dev.headerHeight
         obj.scl.headerWidth = obj.dev.headerWidth / obj.log.headerWidth

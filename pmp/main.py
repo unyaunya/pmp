@@ -3,10 +3,10 @@
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QLabel
-from qtutil import App, MainWindow, createAction
+from qtutil import App, MainWindow, createAction, PropertyDialog
 from pmp import GanttWidget, GanttPrintHandler
 from pmp import config
-from pmp.settings import APPLICATION_NAME
+from pmp.settings import APPLICATION_NAME, settings, dlgSpecs
 from pmp.projectinfodialog import ProjectInfoDialog
 
 class GanttMainWindow(MainWindow):
@@ -60,6 +60,7 @@ class GanttMainWindow(MainWindow):
         self.actions.week = createAction(gw.timescaleWeek, '1週間', "Ctrl+W")
         self.actions.month = createAction(gw.timescaleMonth, '1月', "Ctrl+M")
         self.actions.projectInfo = createAction(self.setProjectInfo, 'プロジェクト情報', "Alt+P")
+        self.actions.setOptions = createAction(self.setOptions, "オプション", "Alt+O")
 
     def createMenus(self):
         menuBar = self.menuBar()
@@ -93,6 +94,7 @@ class GanttMainWindow(MainWindow):
         selectionModeMenu.addAction(self.actions.setSelectModeCell)
         configMenu = menuBar.addMenu("設定")
         configMenu.addAction(self.actions.projectInfo)
+        configMenu.addAction(self.actions.setOptions)
         miscMenu = menuBar.addMenu("その他")
         miscMenu.addAction(self.actions.aboutQt)
         miscMenu.addAction(self.actions.about)
@@ -106,7 +108,12 @@ class GanttMainWindow(MainWindow):
     #   アクション
     #---------------------------------------------------------------------------
     def setProjectInfo(self):
-        dialog = ProjectInfoDialog(APPLICATION_NAME, self).exec_()
+        ProjectInfoDialog(APPLICATION_NAME, self).exec_()
+
+    def setOptions(self):
+        dialog = PropertyDialog(APPLICATION_NAME+":オプション設定", self)
+        dialog.setProperties(dlgSpecs, settings)
+        dialog.exec_()
 
     def setSelectModeRow(self):
         self.ganttWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)

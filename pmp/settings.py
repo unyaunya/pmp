@@ -1,7 +1,7 @@
 #! python3
 # -*- coding: utf-8 -*-
 
-from argparse import Namespace
+from qtutil import Namespace, Property
 
 settings = Namespace()
 
@@ -93,6 +93,19 @@ AGGREGATED_TASK_COLOR   = (64,128,255,255)     #チャート塗潰し色
 #-------------------------------------------------------------------------------
 #印刷諸元
 #-------------------------------------------------------------------------------
-ROWS_PER_PAGE = 63          #1ページあたりの行数
-HEADER_HEIGHT_RATIO = 0.10  #ヘッダ高さの割合(=ヘッダ高さ/ページ高さ)
-HEADER_WIDTH_RATIO = 0.25   #ヘッダ幅の割合(=ヘッダ幅/ページ高さ)
+settings.print.HORIZONTAL_PAGE_COUNT = 1        #横のページ数
+settings.print.ROWS_PER_PAGE = 63          #1ページあたりの行数
+settings.print.HEADER_HEIGHT_RATIO = 0.10  #ヘッダ高さの割合(=ヘッダ高さ/ページ高さ)
+settings.print.HEADER_WIDTH_RATIO = 0.25   #ヘッダ幅の割合(=ヘッダ幅/ページ高さ)
+
+dlgSpecs = [
+    #'だみよ',
+    #Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 63),
+    ['印刷',
+        Property('ヘッダ幅の割合', float, 'print.HEADER_WIDTH_RATIO', 0.25),
+        Property('ヘッダ高さの割合', float, 'print.HEADER_HEIGHT_RATIO', 0.10),
+        Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 63),
+        Property('横のページ数', int, 'print.HORIZONTAL_PAGE_COUNT', 1),
+    ],
+]
+

@@ -42,12 +42,9 @@ class PropertyDialog(QtGui.QDialog):
         self.mainWindow = parent
         self.setWindowTitle(title)
         self.buttonOk = QtGui.QPushButton("buttonOk", self)
-        self.buttonOk.setText(self.tr("&OK"))
+        self.buttonOk.setText(self.tr("&Save"))
         self.buttonOk.setAutoDefault(1)
         self.buttonOk.setDefault(1)
-        self.buttonCancel = QtGui.QPushButton("buttonCancel", self)
-        self.buttonCancel.setText(self.tr("&Cancel"))
-        self.buttonCancel.setAutoDefault(1)
 
         self.propertyTreeWidget = PropertyTreeWidget(self)
         self.setFixedSize(450, 600)
@@ -55,23 +52,16 @@ class PropertyDialog(QtGui.QDialog):
         main_layout = QtGui.QGridLayout()
         main_layout.setSpacing(8)
         main_layout.setMargin(16)
-        main_layout.addWidget(self.propertyTreeWidget, 1, 0, 2, 2)
-
+        main_layout.addWidget(self.propertyTreeWidget, 0, 0, 1, 3)
         #2行目
-        #main_layout.addWidget(QLabel("開始日"), 2, 0)
-        #main_layout.addWidget(self.startDate, 2, 1)
-        #main_layout.addWidget(QLabel("終了日"), 2, 2)
-        #main_layout.addWidget(self.endDate, 2, 3)
-        #3行目
-        main_layout.addWidget(self.buttonOk, 3, 0)
-        main_layout.addWidget(self.buttonCancel, 3, 1)
+        main_layout.addWidget(self.buttonOk, 1, 2)
         self.setLayout(main_layout)
         #----------------------------------------------------------------------
         self.buttonOk.clicked.connect(self.accept)
-        self.buttonCancel.clicked.connect(self.reject)
 
     def setProperties(self, dlgSpecs, settings):
         self.dlgSpecs = dlgSpecs
+        self.settings = settings
         widget = self.propertyTreeWidget
         rootItem = widget.invisibleRootItem()
         parent = rootItem
@@ -83,6 +73,9 @@ class PropertyDialog(QtGui.QDialog):
 
     def accept(self):
         super(PropertyDialog, self).accept()
+        print(self.settings.getItems())
+        with open("settings.ini", "w") as f:
+            self.settings.dump(f)
 
 
 class TreeWidgetItem(QtGui.QTreeWidgetItem):

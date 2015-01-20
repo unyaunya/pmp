@@ -19,10 +19,9 @@ class GanttPrintHandler(PrintHandler):
 
     def printer(self):
         if self._printer is None:
-            self._printer = QPrinter()
+            self._printer = QPrinter(QPrinter.HighResolution)
             self._printer.setOrientation(QtGui.QPrinter.Landscape)
             self._printer.setFullPage(True)
-            #self._printer.setResolution(QPrinter.HighResolution)
             #self.translate(-15, -15)
         self._printer.setDocName(self.ganttWidget.ganttModel.name)
         return self._printer

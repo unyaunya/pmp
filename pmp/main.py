@@ -13,7 +13,13 @@ class GanttMainWindow(MainWindow):
     def __init__(self, parent=None):
         super(GanttMainWindow, self).__init__(parent, APPLICATION_NAME)
         self._printHandler = None
-        settings.merge(Settings.load("settings.ini"))
+        try:
+            _settings = Settings.load("settings.ini")
+        except:
+            _settings = None
+            self.information("settings.iniが読めない(;_;)")
+        if _settings is not None:
+            settings.merge(_settings)
 
     def setup_gui(self):
         super(GanttMainWindow, self).setup_gui()

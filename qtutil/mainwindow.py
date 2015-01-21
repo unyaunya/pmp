@@ -39,7 +39,10 @@ class MainWindow(QtGui.QMainWindow):
         self.printhandler().print(printer)
 
     def not_implemented(self):
-        QtGui.QMessageBox.information(self, self.applicationName, "実装されていません")
+        self.information("実装されていません")
+
+    def information(self, s):
+        QtGui.QMessageBox.information(self, self.applicationName, s)
 
     #---------------------------------------------------------------------------
     #   アクション

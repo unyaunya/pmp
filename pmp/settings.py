@@ -2,18 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import json, codecs
+from datetime import date, datetime
 from qtutil import Namespace, Property
+from .serialize import to_json, from_json
 
 class Settings(Namespace):
     @staticmethod
     def dump(obj, path):
         with codecs.open(path, 'w', 'utf8') as f:
-            json.dump(obj, f, indent=2, ensure_ascii=False)
+            json.dump(obj, f, indent=2, default=to_json, ensure_ascii=False)
 
     @staticmethod
     def load(path):
         with open(path, mode='r', encoding='utf-8') as f:
-            return json.load(f)
+            return json.load(f, object_hook=from_json)
 
 settings = Settings()
 
@@ -110,6 +112,10 @@ settings.print.ROWS_PER_PAGE = 70          #1ページあたりの行数
 settings.print.HEADER_HEIGHT_RATIO = 0.10  #ヘッダ高さの割合(=ヘッダ高さ/ページ高さ)
 settings.print.HEADER_WIDTH_RATIO = 0.25   #ヘッダ幅の割合(=ヘッダ幅/ページ高さ)
 
+#-------------------------------------------------------------------------------
+#その他の諸元
+#-------------------------------------------------------------------------------
+
 dlgSpecs = [
     #'だみよ',
     #Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 63),
@@ -119,4 +125,7 @@ dlgSpecs = [
         Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 70),
         Property('横のページ数', int, 'print.HORIZONTAL_PAGE_COUNT', 1),
     ],
+    ['その他',
+        Property('イナズマ線の日付', date, 'misc.DATE_OF_PROGRESS_LINE', date.today()),
+    ]
 ]

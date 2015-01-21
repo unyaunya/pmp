@@ -6,13 +6,14 @@ from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QLabel
 from qtutil import App, MainWindow, createAction, PropertyDialog
 from pmp import GanttWidget, GanttPrintHandler
 from pmp import config
-from pmp.settings import APPLICATION_NAME, settings, dlgSpecs
+from pmp.settings import APPLICATION_NAME, Settings, settings, dlgSpecs
 from pmp.projectinfodialog import ProjectInfoDialog
 
 class GanttMainWindow(MainWindow):
     def __init__(self, parent=None):
         super(GanttMainWindow, self).__init__(parent, APPLICATION_NAME)
         self._printHandler = None
+        settings.merge(Settings.load("settings.ini"))
 
     def setup_gui(self):
         super(GanttMainWindow, self).setup_gui()
@@ -113,7 +114,12 @@ class GanttMainWindow(MainWindow):
     def setOptions(self):
         dialog = PropertyDialog(APPLICATION_NAME+":オプション設定", self)
         dialog.setProperties(dlgSpecs, settings)
-        dialog.exec_()
+        ret = dialog.exec_()
+        print(ret)
+        if ret != QtGui.QDialog.Accepted:
+            return
+        settings.merge(dialog.settings)
+        Settings.dump(settings, "settings.ini")
 
     def setSelectModeRow(self):
         self.ganttWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)

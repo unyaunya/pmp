@@ -7,7 +7,6 @@ from PyQt4.QtCore import Qt
 from .misc import QDate2datetime
 from .namespace import Namespace
 
-
 class ItemDelegate(QtGui.QStyledItemDelegate):
     def __init__(self, parent=None):
         super(ItemDelegate, self).__init__(parent)
@@ -61,21 +60,15 @@ class PropertyDialog(QtGui.QDialog):
 
     def setProperties(self, dlgSpecs, settings):
         self.dlgSpecs = dlgSpecs
-        self.settings = settings
+        self.settings = Namespace(settings)
         widget = self.propertyTreeWidget
         rootItem = widget.invisibleRootItem()
         parent = rootItem
         elems = self.dlgSpecs
         for e in elems:
-            item = TreeWidgetItem(e, settings)
+            item = TreeWidgetItem(e, self.settings)
             parent.addChild(item)
             widget._expand([item])
-
-    def accept(self):
-        super(PropertyDialog, self).accept()
-        print(self.settings.getItems())
-        with open("settings.ini", "w") as f:
-            self.settings.dump(f)
 
 
 class TreeWidgetItem(QtGui.QTreeWidgetItem):

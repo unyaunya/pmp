@@ -1,9 +1,21 @@
 #! python3
 # -*- coding: utf-8 -*-
 
+import json, codecs
 from qtutil import Namespace, Property
 
-settings = Namespace()
+class Settings(Namespace):
+    @staticmethod
+    def dump(obj, path):
+        with codecs.open(path, 'w', 'utf8') as f:
+            json.dump(obj, f, indent=2, ensure_ascii=False)
+
+    @staticmethod
+    def load(path):
+        with open(path, mode='r', encoding='utf-8') as f:
+            return json.load(f)
+
+settings = Settings()
 
 #-------------------------------------------------------------------------------
 #全般／共通項目
@@ -108,4 +120,3 @@ dlgSpecs = [
         Property('横のページ数', int, 'print.HORIZONTAL_PAGE_COUNT', 1),
     ],
 ]
-

@@ -2,6 +2,43 @@
 # -*- coding: utf-8 -*-
 
 class Namespace(dict):
+    """辞書の派生クラス。項目を属性としてアクセスできるようにした。
+
+    次のように使用できる。
+
+    >>> a = Namespace()
+    >>> a.b = 1
+    >>> a['b']
+    1
+
+    >>> a.c.d = 1
+    >>> a['c']['d']
+    1
+    >>> type(a.c)
+    <class 'namespace.Namespace'>
+
+    次の使い方はエラーになる。
+
+    >>> a.d = 1
+    >>> a.d.e = 2
+    Traceback (most recent call last):
+        ...
+    AttributeError: 'int' object has no attribute 'e'
+
+    基本的に__getattr__ の再定義をしているだけなので、ホントの
+    属性があれば、そちらへのアクセスが優先され、辞書に登録した
+    項目は隠蔽されるので注意が必要。
+    """
+    def __init__(self, aDict=None):
+        super(Namespace, self).__init__()
+        if aDict is None:
+            return
+        for (key, value) in aDict.items():
+            if isinstance(value, dict):
+                self[key] = Namespace(value)
+            else:
+                self[key] = value
+
     def __getattr__(self, key):
         if not key in self:
             self[key] = Namespace()
@@ -44,11 +81,9 @@ class Namespace(dict):
                 values.append(i)
         return values
 
-    def dump(self, f):
-        for i in self.getItems():
-            print("%s = %s" % (i[0], i[1]), file=f)
-
-    def load(self, f):
-        for line in f.readlines():
-            words = [word.trim() in line.split('=')]
-            self.setData(word[0], word[1])
+    def merge(self, ns):
+        """ns(dictインスタンス)をマージする"""
+        if not isinstance(ns, Namespace):
+            ns = Namespace(ns)
+        for (key, value) in ns.getItems():
+            self.setData(key, value)

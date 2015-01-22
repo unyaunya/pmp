@@ -4,6 +4,7 @@
 import uuid
 import copy
 
+import numbers
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt, QModelIndex
 from .util import s2dt, dt2s
@@ -24,8 +25,8 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         self.start = dt2s(task.start)
         self.end = dt2s(task.end)
         self.setText(COLUMN_ASIGNEE, "unknown")
-        self.pv = str(task.pv)
-        self.ev = str(task.ev)
+        self.pv = task.pv
+        self.ev = task.ev
         self.task = task
         self.setFlags(self.flags() | Qt.ItemIsEditable)
         if task.children is not None and len(task.children) > 0:
@@ -40,9 +41,9 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         elif column == COLUMN_END:
             task.end = s2dt(self.end)
         elif column == COLUMN_PV:
-            task.pv = int(self.pv)
+            task.pv = self.pv
         elif column == COLUMN_EV:
-            task.ev = int(self.ev)
+            task.ev = self.ev
 
     def isAggregated(self):
         return self.childCount() > 0
@@ -52,9 +53,9 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
             #集約タスクの属性は、子タスクの値から算出して表示する
             if role == Qt.DisplayRole:
                 if column == COLUMN_PV:
-                    return sum(int(item.pv) for item in self.childItems())
+                    return sum(item.pv for item in self.childItems())
                 elif column == COLUMN_EV:
-                    return sum(int(item.ev) for item in self.childItems())
+                    return sum(item.ev for item in self.childItems())
                 elif column == COLUMN_START:
                     return dt2s(self.task.minimumDate())
                 elif column == COLUMN_END:
@@ -102,6 +103,12 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
     def start(self):
         return self.data(COLUMN_START, Qt.DisplayRole)
 
+    @property
+    def progressRate(self):
+        if self.pv <= 0:
+            return 0.0
+        return min(1.0, self.ev / self.pv)
+
     @start.setter
     def start(self, value):
         self.setData(COLUMN_START, Qt.DisplayRole, value)
@@ -120,6 +127,8 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
 
     @pv.setter
     def pv(self, value):
+        if not isinstance(value, numbers.Real):
+            return
         self.setData(COLUMN_PV, Qt.DisplayRole, value)
 
     @property
@@ -128,6 +137,8 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
 
     @ev.setter
     def ev(self, value):
+        if not isinstance(value, numbers.Real):
+            return
         self.setData(COLUMN_EV, Qt.DisplayRole, value)
 
     def clone(self):

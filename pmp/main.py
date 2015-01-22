@@ -68,6 +68,7 @@ class GanttMainWindow(MainWindow):
         self.actions.month = createAction(gw.timescaleMonth, '1月', "Ctrl+M")
         self.actions.projectInfo = createAction(self.setProjectInfo, 'プロジェクト情報', "Alt+P")
         self.actions.setOptions = createAction(self.setOptions, "オプション", "Alt+O")
+        self.actions.evm = createAction(self.showEVM, "EVMデータ")
 
     def createMenus(self):
         menuBar = self.menuBar()
@@ -103,6 +104,7 @@ class GanttMainWindow(MainWindow):
         configMenu.addAction(self.actions.projectInfo)
         configMenu.addAction(self.actions.setOptions)
         miscMenu = menuBar.addMenu("その他")
+        miscMenu.addAction(self.actions.evm)
         miscMenu.addAction(self.actions.aboutQt)
         miscMenu.addAction(self.actions.about)
 
@@ -126,6 +128,7 @@ class GanttMainWindow(MainWindow):
             return
         settings.merge(dialog.settings)
         Settings.dump(settings, "settings.ini")
+        self.ganttWidget.dateOfProgressLine = settings.misc.DATE_OF_PROGRESS_LINE
 
     def setSelectModeRow(self):
         self.ganttWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -134,6 +137,13 @@ class GanttMainWindow(MainWindow):
     def setSelectModeCell(self):
         self.ganttWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
         self.ganttWidget.refresh()
+
+    def showEVM(self):
+        data = self.ganttWidget.ganttModel.getEvmData()
+        for item in data:
+            print(item)
+        print(sum([x[1] for x in data]))
+
 
 if __name__ == '__main__':
     App().exec(GanttMainWindow)

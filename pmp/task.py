@@ -19,10 +19,6 @@ class Task(object):
         self.children = []
         self.expanded = True
 
-    #@property
-    #def uuid(self):
-    #    return self._uuid
-
     @property
     def start(self):
         return self._start
@@ -90,6 +86,15 @@ class Task(object):
     def adjustDate(self):
         self.start = self.minimumDate()
         self.end = self.maximumDate()
+
+    def pvFromDate(self, aDate):
+        if len(self.children) <= 0:
+            if aDate < self.start:
+                return 0
+            elif aDate > self.end:
+                return 0
+            return self.pv / (self.end - self.start).days
+        return sum([task.pvFromDate(aDate) for task in self.children])
 
     @staticmethod
     def defaultTask():

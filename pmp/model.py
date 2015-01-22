@@ -12,6 +12,15 @@ class TaskModel(Task):
             end = start+timedelta(days=100)
         super(TaskModel, self).__init__(name, start, end, pv, ev)
 
+    def getEvmData(self):
+        _ONEDAY = timedelta(days=1)
+        data = []
+        d = self.start
+        while d <= self.end:
+            data.append((d, self.pvFromDate(d), 0))
+            d += _ONEDAY
+        return data
+
     @staticmethod
     def dump(obj, path):
         with codecs.open(path, 'w', 'utf8') as f:

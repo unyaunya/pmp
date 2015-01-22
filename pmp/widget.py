@@ -226,7 +226,7 @@ class ChartScrollBar(QtGui.QScrollBar):
         """スクロールバーの最大値を設定、必要あれば現在値も修正する"""
         value = self.ganttWidget.preferableWidth() - self.ganttWidget.header().sectionSize(COLUMN_CHART)
         self.setMaximum(max(0, value))
-        print("_adjustScrollBar(%d -> %d)" % (value, self.maximum()))
+        #print("_adjustScrollBar(%d -> %d)" % (value, self.maximum()))
 
     def adjustScrollPosition(self):
         self.ganttWidget.header().headerDataChanged(Qt.Horizontal, COLUMN_CHART, COLUMN_CHART)
@@ -243,6 +243,7 @@ class Widget_(QtGui.QTreeWidget):
         self.setHeader(GanttHeaderView(self))
         self.ganttModel = model
 
+        self.pen4progressLine = QPen(tuple2color(PROGRESS_LINE_COLOR))
         self.pen4chartBoundary = QPen(tuple2color(CHART_BOUNDARY_COLOR))
         self.brush4chartFill = tuple2brush(CHART_COLOR)
         self.brush4chartFillProgress = tuple2brush(PROGRESS_COLOR)
@@ -251,6 +252,7 @@ class Widget_(QtGui.QTreeWidget):
         self.setHeaderLabels(HEADER_LABELS)
         for i in range(len(COLUMN_WIDTHS)):
             self.header().resizeSection(i, COLUMN_WIDTHS[i])
+        self._dateOfProgressLine = dt.today()
 
     @property
     def ganttModel(self):
@@ -265,6 +267,19 @@ class Widget_(QtGui.QTreeWidget):
         items = TreeWidgetItem.Items(model.children)
         self.addTopLevelItems(items)
         self._sync_expand_collapse(items)
+
+    @property
+    def dateOfProgressLine(self):
+        return self._dateOfProgressLine
+
+    @dateOfProgressLine.setter
+    def dateOfProgressLine(self, value):
+        if not isinstance(value, (date, datetime)):
+            return
+        if isinstance(value, date):
+            value = datetime(value.year, value.month, value.day)
+        self._dateOfProgressLine = value
+        self.refresh()
 
     def _sync_expand_collapse(self, items):
         for item in items:
@@ -289,6 +304,7 @@ class Widget_(QtGui.QTreeWidget):
         rect.setLeft(self.columnViewportPosition(COLUMN_CHART))
         rect.setRight(rect.right() + self.getChartScrollBar().value())
         self.cdi.prepare(None, rect, self.ganttModel.start, self.ganttModel.end + _ONEDAY)
+        self.xposOfToday = self.xpos(self.dateOfProgressLine)
         super(Widget_, self).paintEvent(e)
 
     def drawRow(self, painter, options, index):
@@ -303,10 +319,37 @@ class Widget_(QtGui.QTreeWidget):
         painter.translate(-self.getChartScrollBar().value(), 0)
         #----
         self.drawItemBackground(painter, itemRect)
+        #----
         item = self.itemFromIndex(index)
         self.drawChart(painter, item, self._chartRect(item, itemRect))
         #----
+        self.drawProgressLine(painter, item, itemRect)
+        #----
         painter.restore()
+
+    def drawProgressLine(self, painter, item, itemRect):
+        # x <-- イナズマ線のx座標
+        x = self.columnViewportPosition(COLUMN_CHART) + self.xposOfToday
+        progressRate = item.progressRate
+        #xposOfItem <-- 当該アイテムの進捗を示すｘ座標
+        xposOfItem = self._currentPosOfItem(item)
+
+        #遅れていない未着手タスク
+        if self.dateOfProgressLine < s2dt(item.start) and progressRate == 0.0:
+            xposOfItem = x
+        #過去の完了タスク
+        elif self.dateOfProgressLine > s2dt(item.end) and progressRate == 1.0:
+            xposOfItem = x
+
+        painter.setPen(self.pen4progressLine)
+        y1 = itemRect.top()
+        y3 = itemRect.bottom()
+        if x == xposOfItem:
+            painter.drawLine(x, y1, x, y3)
+        else:
+            y2 = (y1+y3)/2
+            painter.drawLine(x, y1, xposOfItem, y2)
+            painter.drawLine(xposOfItem, y2, x, y3)
 
     def _chartRect(self, item, rect):
         """taskを描画する矩形の座標を算出する"""
@@ -316,6 +359,14 @@ class Widget_(QtGui.QTreeWidget):
         x2 = x0 + self.xpos(s2dt(item.end)+_ONEDAY)
         #print(x1, x2)
         return QRect(x1, y-CHART_HEIGHT/2, x2-x1, CHART_HEIGHT)
+
+    def _currentPosOfItem(self, item):
+        """指定されたitemの進捗を示すx座標を算出する"""
+        x0 = self.columnViewportPosition(COLUMN_CHART)
+        x1 = self.xpos(s2dt(item.start))
+        x2 = self.xpos(s2dt(item.end)+_ONEDAY)
+        pr = item.progressRate
+        return x0 + x1 * (1-pr) + x2 * pr
 
     def drawChart(self, painter, item, chartRect):
         task = item.task
@@ -327,11 +378,11 @@ class Widget_(QtGui.QTreeWidget):
         painter.setPen(self.pen4chartBoundary)
         painter.drawRect(chartRect)
         #--進捗率の表示--
-        if int(item.pv) > 0:
+        if item.pv > 0:
             progressRect = QRect(
                 chartRect.left(),
                 chartRect.top()+(chartRect.height()-PROGRESST_HEIGHT)/2,
-                chartRect.width() * int(item.ev)/int(item.pv),
+                chartRect.width() * item.progressRate,
                 PROGRESST_HEIGHT)
             painter.fillRect(progressRect, self.brush4chartFillProgress)
             painter.drawRect(progressRect)
@@ -629,7 +680,6 @@ class GanttWidget(Widget_):
 
     def taskCollapsed(self, item):
         item.task.expanded = False
-
 
 class DateEditDelegate(QtGui.QStyledItemDelegate):
     pass

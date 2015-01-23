@@ -8,6 +8,7 @@ from pmp import GanttWidget, GanttPrintHandler
 from pmp import config
 from pmp.settings import APPLICATION_NAME, Settings, settings, dlgSpecs
 from pmp.projectinfodialog import ProjectInfoDialog
+from pmp.evmdialog import EvmDialog
 
 class GanttMainWindow(MainWindow):
     def __init__(self, parent=None):
@@ -139,11 +140,7 @@ class GanttMainWindow(MainWindow):
         self.ganttWidget.refresh()
 
     def showEVM(self):
-        data = self.ganttWidget.ganttModel.getEvmData()
-        for item in data:
-            print(item)
-        print(sum([x[1] for x in data]))
-
+        EvmDialog(APPLICATION_NAME, self).exec_()
 
 if __name__ == '__main__':
     App().exec(GanttMainWindow)

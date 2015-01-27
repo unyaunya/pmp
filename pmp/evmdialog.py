@@ -39,5 +39,5 @@ class EvmDialog(QtGui.QDialog):
         s = '日付, PV(当日), PV（累計)\n'
         for (aDate, pv, ev) in data:
             accumulated += pv
-            s += "%s, %d, %d\n" % (aDate.strftime('%Y/%m/%d'), pv, accumulated)
+            s += "%s, %f, %f\n" % (aDate.strftime('%Y/%m/%d'), pv, accumulated)
         return s

@@ -93,7 +93,7 @@ class Task(object):
                 return 0
             elif aDate > self.end:
                 return 0
-            return self.pv / (self.end - self.start).days
+            return self.pv / ((self.end - self.start).days + 1)
         return sum([task.pvFromDate(aDate) for task in self.children])
 
     @staticmethod

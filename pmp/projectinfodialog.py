@@ -55,6 +55,6 @@ class ProjectInfoDialog(QtGui.QDialog):
         super(ProjectInfoDialog, self).accept()
         print(self.projectName.text(), self.startDate.date(), self.endDate.date())
         self._model().name = self.projectName.text()
-        self._model().start = QDate2datetime(self.startDate.date())
-        self._model().end = QDate2datetime(self.endDate.date())
+        self._model().start = to_datetime(self.startDate.date())
+        self._model().end = to_datetime(self.endDate.date())
         self.mainWindow.ganttWidget.ganttModel = self._model()

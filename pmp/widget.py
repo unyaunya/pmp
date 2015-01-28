@@ -685,15 +685,20 @@ class DateEditDelegate(QtGui.QStyledItemDelegate):
         self.treeWidget = parent
         super(DateEditDelegate, self).__init__(parent)
 
+    def _createEditor(self, aDate, parent):
+        editor = QtGui.QDateEdit(aDate, parent)
+        editor.setCalendarPopup(True)
+        return editor
+
     def createEditor(self, parent, option, modelIndex):
         column = modelIndex.column()
         item = self.treeWidget.itemFromIndex(modelIndex)
         if column == COLUMN_START:
             print('COLUMN_START', item.task.start)
-            return QtGui.QDateEdit(item.task.start, parent)
+            return self._createEditor(item.task.start, parent)
         elif column == COLUMN_END:
             print('COLUMN_END', item.task.end)
-            return QtGui.QDateEdit(item.task.end, parent)
+            return self._createEditor(item.task.end, parent)
         else:
             return super(DateEditDelegate, self).createEditor(parent, option, modelIndex)
 

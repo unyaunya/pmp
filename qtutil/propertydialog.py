@@ -20,13 +20,23 @@ class ItemDelegate(QtGui.QStyledItemDelegate):
         super(ItemDelegate, self).__init__(parent)
         self.treeWidget = parent
 
+    #def paint(self, painter, option, modelIndex):
+    #    item = self.treeWidget.itemFromIndex(modelIndex)
+    #    typeName = item.option.typeName
+    #    if typeName == date:
+    #        super(ItemDelegate, self).paint(painter, option, modelIndex)
+    #    else:
+    #        super(ItemDelegate, self).paint(painter, option, modelIndex)
+
     def createEditor(self, parent, option, modelIndex):
         item = self.treeWidget.itemFromIndex(modelIndex)
         typeName = item.option.typeName
         if typeName == date:
-            return QtGui.QDateEdit(
+            widget = QtGui.QDateEdit(
                 item.settings.getData(item.option.key, item.option.defaultValue),
                 parent)
+            widget.setCalendarPopup(True)
+            return widget
         else:
             return super(ItemDelegate, self).createEditor(parent, option, modelIndex)
 

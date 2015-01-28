@@ -25,7 +25,7 @@ class Task(object):
 
     @start.setter
     def start(self, value):
-        self._start = s2dt(value)
+        self._start = value
 
     @property
     def end(self):
@@ -33,7 +33,7 @@ class Task(object):
 
     @end.setter
     def end(self, value):
-        self._end = s2dt(value)
+        self._end = value
 
     @property
     def pv(self):

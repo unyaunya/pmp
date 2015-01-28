@@ -4,11 +4,41 @@
 from PyQt4 import QtGui, QtCore
 from datetime import date, datetime
 
-def QDate2datetime(qdate):
-    return datetime(qdate.year(), qdate.month(), qdate.day())
+def toQDate(value, formatString='yyyy/MM/dd'):
+    if isinstance(value, QtCore.QDate):
+        return value
+    if isinstance(value, QtCore.QDateTime):
+        return value.date()
+    if isinstance(value, (date, datetime)):
+        return QtCore.QDate(value.year, value.month, value.day)
+    if isinstance(value, str):
+        return QtCore.QDate.fromString(value, formatString)
+    else:
+        raise ValueError('toQDate:invalid type <%s>' % str(type(value)))
 
-def QDate2date(qdate):
-    return date(qdate.year(), qdate.month(), qdate.day())
+def to_datetime(value, formatString='%Y/%M/%d'):
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, date):
+        return datetime(value.year, value.month, value.day)
+    if isinstance(value, (QtCore.QDate, QtCore.QDateTime)):
+        return datetime(value.year(), value.month(), value.day())
+    if isinstance(value, str):
+        return datetime.strptime(obj, formatString)
+    else:
+        raise ValueError('to_datetime:invalid type <%s>' % str(type(value)))
+
+def to_date(value, formatString='%Y/%M/%d'):
+    if isinstance(value, date):
+        return value
+    if isinstance(value, datetime):
+        return date(value.year, value.month, value.day)
+    if isinstance(value, (QtCore.QDate, QtCore.QDateTime)):
+        return date(value.year(), value.month(), value.day())
+    if isinstance(value, str):
+        return date.strptime(obj, formatString)
+    else:
+        raise ValueError('to_date:invalid type <%s>' % str(type(value)))
 
 def tuple2color(aTuple):
     (r,g,b,alpha) = aTuple

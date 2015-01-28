@@ -3,7 +3,7 @@
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QLabel
-from qtutil import QDate2datetime
+from qtutil import to_datetime
 
 class ProjectInfoDialog(QtGui.QDialog):
     def __init__(self, appName, parent):

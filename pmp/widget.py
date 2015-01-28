@@ -13,7 +13,7 @@ from .settings import *
 from .model import Task, TaskModel
 from .config import config
 from .treewidgetitem import TreeWidgetItem
-from qtutil import tuple2color, tuple2brush
+from qtutil import tuple2color, tuple2brush, to_datetime
 
 _ONEDAY = timedelta(days=1)
 
@@ -292,9 +292,12 @@ class Widget_(QtGui.QTreeWidget):
     def preferableWidth(self):
         if self.ganttModel is None:
             return 0
-        return self.xpos(self.ganttModel.end+_ONEDAY)
+        return self.xpos(self.ganttModel.end, _ONEDAY)
 
-    def xpos(self, dt):
+    def xpos(self, dt, offset=None):
+        dt = to_datetime(dt)
+        if offset is not None:
+            dt += offset
         tdelta = dt - self.ganttModel.start
         return tdelta.days * self.cdi.dayWidth
 
@@ -355,16 +358,16 @@ class Widget_(QtGui.QTreeWidget):
         """taskを描画する矩形の座標を算出する"""
         y = (rect.top()+rect.bottom())/2
         x0 = self.columnViewportPosition(COLUMN_CHART)
-        x1 = x0 + self.xpos(s2dt(item.start))
-        x2 = x0 + self.xpos(s2dt(item.end)+_ONEDAY)
+        x1 = x0 + self.xpos(item.start)
+        x2 = x0 + self.xpos(item.end, _ONEDAY)
         #print(x1, x2)
         return QRect(x1, y-CHART_HEIGHT/2, x2-x1, CHART_HEIGHT)
 
     def _currentPosOfItem(self, item):
         """指定されたitemの進捗を示すx座標を算出する"""
         x0 = self.columnViewportPosition(COLUMN_CHART)
-        x1 = self.xpos(s2dt(item.start))
-        x2 = self.xpos(s2dt(item.end)+_ONEDAY)
+        x1 = self.xpos(item.start)
+        x2 = self.xpos(item.end, _ONEDAY)
         pr = item.progressRate
         return x0 + x1 * (1-pr) + x2 * pr
 
@@ -420,15 +423,14 @@ class GanttWidget(Widget_):
     def __init__(self, model = None):
         super(GanttWidget, self).__init__()
         #-----------------------------------------------------------------------
-        self.dateEditDelegate = DateEditDelegate()
-        #self.setItemDelegateForColumn(COLUMN_START, self.dateEditDelegate)
-        #self.setItemDelegateForColumn(COLUMN_END, self.dateEditDelegate)
+        self.dateEditDelegate = DateEditDelegate(self)
+        self.setItemDelegateForColumn(COLUMN_START, self.dateEditDelegate)
+        self.setItemDelegateForColumn(COLUMN_END, self.dateEditDelegate)
         #-----------------------------------------------------------------------
         self._currentFileName = None
         self._path = None
         self._workingDirectory = None
         #-----------------------------------------------------------------------
-        self.itemChanged.connect(self.taskChanged)
         self.itemCollapsed.connect(self.taskCollapsed)
         self.itemExpanded.connect(self.taskExpanded)
 
@@ -672,9 +674,6 @@ class GanttWidget(Widget_):
         self.insertAfter(ci, item.clone())
 
     #---------------------------------------------------------------------------
-    def taskChanged(self, item, column):
-        item.dataChanged2(column)
-
     def taskExpanded(self, item):
         item.task.expanded = True
 
@@ -682,5 +681,19 @@ class GanttWidget(Widget_):
         item.task.expanded = False
 
 class DateEditDelegate(QtGui.QStyledItemDelegate):
-    pass
+    def __init__(self, parent):
+        self.treeWidget = parent
+        super(DateEditDelegate, self).__init__(parent)
+
+    def createEditor(self, parent, option, modelIndex):
+        column = modelIndex.column()
+        item = self.treeWidget.itemFromIndex(modelIndex)
+        if column == COLUMN_START:
+            print('COLUMN_START', item.task.start)
+            return QtGui.QDateEdit(item.task.start, parent)
+        elif column == COLUMN_END:
+            print('COLUMN_END', item.task.end)
+            return QtGui.QDateEdit(item.task.end, parent)
+        else:
+            return super(DateEditDelegate, self).createEditor(parent, option, modelIndex)
 

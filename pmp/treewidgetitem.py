@@ -5,11 +5,10 @@ import uuid
 import copy
 
 import numbers
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt, QModelIndex
-from .util import s2dt, dt2s
 from .settings import *
-from qtutil import tuple2brush
+from qtutil import toQDate, to_datetime, tuple2brush
 
 _aggregatedTaskBrush = tuple2brush(AGGREGATED_TASK_COLOR)
 
@@ -22,8 +21,8 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
 
     def taskToItem(self, task):
         self.name = task.name
-        self.start = dt2s(task.start)
-        self.end = dt2s(task.end)
+        self.start = toQDate(task.start)
+        self.end = toQDate(task.end)
         self.setText(COLUMN_ASIGNEE, "unknown")
         self.pv = task.pv
         self.ev = task.ev
@@ -32,14 +31,16 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         if task.children is not None and len(task.children) > 0:
             self.addChildren(TreeWidgetItem.Items(task.children))
 
-    def dataChanged2(self, column):
+    def _dataChanged(self, column):
         task = self.task
+        if self.task is None:
+            return
         if column == COLUMN_NAME:
             task.name = self.name
         elif column == COLUMN_START:
-            task.start = s2dt(self.start)
+            task.start = to_datetime(self.start)
         elif column == COLUMN_END:
-            task.end = s2dt(self.end)
+            task.end = to_datetime(self.end)
         elif column == COLUMN_PV:
             task.pv = self.pv
         elif column == COLUMN_EV:
@@ -49,7 +50,7 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         return self.childCount() > 0
 
     def data(self, column, role):
-        if self.childCount() > 0:
+        if self.isAggregated():
             #集約タスクの属性は、子タスクの値から算出して表示する
             if role == Qt.DisplayRole:
                 if column == COLUMN_PV:
@@ -57,12 +58,19 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
                 elif column == COLUMN_EV:
                     return sum(item.ev for item in self.childItems())
                 elif column == COLUMN_START:
-                    return dt2s(self.task.minimumDate())
+                    return toQDate(self.task.minimumDate())
                 elif column == COLUMN_END:
-                    return dt2s(self.task.maximumDate())
+                    return toQDate(self.task.maximumDate())
             elif role == Qt.ForegroundRole:
                 return _aggregatedTaskBrush
         return super(TreeWidgetItem, self).data(column, role)
+
+    def setData(self, column, role, value):
+        if role == Qt.EditRole or role == Qt.DisplayRole:
+            if column == COLUMN_START or column == COLUMN_END:
+                value = toQDate(value)
+        super(TreeWidgetItem, self).setData(column, role, value)
+        self._dataChanged(column)
 
     def childItems(self):
         items = []
@@ -147,4 +155,3 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
     @staticmethod
     def Items(tasks):
         return [TreeWidgetItem(tasks[i]) for i in range(0, len(tasks))]
-

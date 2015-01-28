@@ -4,7 +4,7 @@
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QLabel
 from PyQt4.QtCore import Qt
-from .misc import QDate2date
+from .misc import to_date
 from .namespace import Namespace
 from datetime import date, datetime
 
@@ -132,7 +132,7 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
             print(column, role, value, self.option.key)
             if column == 1:
                 if self.option.typeName == date:
-                    value = QDate2date(value.date())
+                    value = to_date(value.date())
                 else:
                     value = self.option.typeName(value)
                 self.settings.setData(self.option.key, value)

@@ -12,4 +12,3 @@ class App(object):
         self.mainWindow = mainWindowClass()
         self.mainWindow.show()
         self.app.exec_()
-

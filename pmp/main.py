@@ -12,7 +12,6 @@ from pmp.evmdialog import EvmDialog
 
 class GanttMainWindow(MainWindow):
     def __init__(self, parent=None):
-        super(GanttMainWindow, self).__init__(parent, APPLICATION_NAME)
         self._printHandler = None
         try:
             _settings = Settings.load("settings.ini")
@@ -21,6 +20,7 @@ class GanttMainWindow(MainWindow):
             self.information("settings.iniが読めない(;_;)")
         if _settings is not None:
             settings.merge(_settings)
+        super(GanttMainWindow, self).__init__(parent, APPLICATION_NAME)
 
     def setup_gui(self):
         super(GanttMainWindow, self).setup_gui()
@@ -82,7 +82,7 @@ class GanttMainWindow(MainWindow):
         fileMenu.addAction(self.actions.preview)
         fileMenu.addAction(self.actions.pageSettings)
         fileMenu.addSeparator()
-        fileMenu.addAction(self.actions.exit)
+        fileMenu.addAction(self.actions.quit)
         editMenu = menuBar.addMenu("編集")
         editMenu.addAction(self.actions.copy)
         editMenu.addAction(self.actions.paste)
@@ -143,4 +143,8 @@ class GanttMainWindow(MainWindow):
         EvmDialog(APPLICATION_NAME, self).exec_()
 
 if __name__ == '__main__':
-    App().exec(GanttMainWindow)
+    def onQuit():
+        Settings.dump(settings, "settings.ini")
+    app = App()
+    app.app.aboutToQuit.connect(onQuit)
+    app.exec(GanttMainWindow)

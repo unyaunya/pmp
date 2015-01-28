@@ -29,7 +29,6 @@ APPLICATION_NAME = "PMP(Poor Man's ms-Projcect)"
 #データ部(画面左側)の表示諸元
 #-------------------------------------------------------------------------------
 HEADER_LABELS = ["項目名","開始日","終了日","担当者", "PV", "EV", ""]
-COLUMN_WIDTHS = [200, 80, 80, 0, 40, 40]
 
 COLUMN_NAME  = 0
 COLUMN_START  = 1
@@ -105,12 +104,17 @@ AGGREGATED_TASK_COLOR   = ( 64,128,255,255) #チャート塗潰し色
 PROGRESS_LINE_COLOR     = (255,  0,  0,255) #イナズマ線色
 
 #-------------------------------------------------------------------------------
+#列幅
+#-------------------------------------------------------------------------------
+settings.columnWidth     = [360, 80, 80, 0, 40, 40, 600]
+
+#-------------------------------------------------------------------------------
 #印刷諸元
 #-------------------------------------------------------------------------------
-settings.print.HORIZONTAL_PAGE_COUNT = 1   #横のページ数
-settings.print.ROWS_PER_PAGE = 70          #1ページあたりの行数
-settings.print.HEADER_HEIGHT_RATIO = 0.10  #ヘッダ高さの割合(=ヘッダ高さ/ページ高さ)
-settings.print.HEADER_WIDTH_RATIO = 0.25   #ヘッダ幅の割合(=ヘッダ幅/ページ高さ)
+settings.print.HORIZONTAL_PAGE_COUNT    = 1     #横のページ数
+settings.print.ROWS_PER_PAGE            = 70    #1ページあたりの行数
+settings.print.HEADER_HEIGHT_RATIO      = 0.10  #ヘッダ高さの割合(=ヘッダ高さ/ページ高さ)
+settings.print.HEADER_WIDTH_RATIO       = 0.25  #ヘッダ幅の割合(=ヘッダ幅/ページ高さ)
 
 #-------------------------------------------------------------------------------
 #その他の諸元
@@ -125,6 +129,15 @@ dlgSpecs = [
         Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 70),
         Property('横のページ数', int, 'print.HORIZONTAL_PAGE_COUNT', 1),
     ],
+    #['列幅',
+    #    #"項目名","開始日","終了日","担当者", "PV", "EV"
+    #    Property('項目名', int, 'width.NAME',    200),
+    #    Property('開始日', int, 'width.START',   80),
+    #    Property('終了日', int, 'width.END',     80),
+    #    Property('担当者', int, 'width.ASIGNEE', 0),
+    #    Property('PV',     int, 'width.PV',      40),
+    #    Property('EV',     int, 'width.EV',      40),
+    #],
     ['その他',
         Property('イナズマ線の日付', date, 'misc.DATE_OF_PROGRESS_LINE', date.today()),
     ]

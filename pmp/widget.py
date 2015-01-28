@@ -174,6 +174,11 @@ class GanttHeaderView(QtGui.QHeaderView):
         self.pen4text = QPen(Qt.darkGray)
         self.sectionResized.connect(self._adjustSectionSize)
         self.cdi = CalendarDrawingInfo()
+        self.sectionResized.connect(self._recordSectionSize)
+
+    def _recordSectionSize(self, column, oldSize, newSize):
+        settings.columnWidth[column] = newSize
+        print(settings.columnWidth)
 
     def resizeEvent(self, event):
         super(GanttHeaderView, self).resizeEvent(event)
@@ -250,9 +255,12 @@ class Widget_(QtGui.QTreeWidget):
         self.brush4aggregatedTask = tuple2brush(AGGREGATED_TASK_COLOR)
         self.cdi = CalendarDrawingInfo()
         self.setHeaderLabels(HEADER_LABELS)
-        for i in range(len(COLUMN_WIDTHS)):
-            self.header().resizeSection(i, COLUMN_WIDTHS[i])
+        self._initSectionSize()
         self._dateOfProgressLine = dt.today()
+
+    def _initSectionSize(self):
+        for i in range(len(settings.columnWidth)):
+            self.header().resizeSection(i, settings.columnWidth[i])
 
     @property
     def ganttModel(self):

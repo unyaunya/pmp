@@ -27,7 +27,7 @@ class MainWindow(QtGui.QMainWindow):
     def createActions(self):
         """Actionオブジェクトを作成する。派生クラスでオーバライド"""
         self.actions = Namespace()
-        self.actions.exit = createAction(self.exit, '終了', "Alt+F4")
+        self.actions.quit = createAction(self.quit, '終了', "Alt+F4")
         self.actions.print = createAction(self.printAction, '印刷', "Ctrl+P")
         self.actions.preview = createAction(self.printPreview, '印刷プレビュー')
         self.actions.pageSettings = createAction(self.pageSettings, 'ページ設定')
@@ -62,8 +62,8 @@ class MainWindow(QtGui.QMainWindow):
     def aboutQt(self):
         QtGui.QApplication.aboutQt()
 
-    def exit(self):
-        QtGui.QApplication.exit()
+    def quit(self):
+        QtGui.QApplication.quit()
 
     #---------------------------------------------------------------------------
     #   staticmethod

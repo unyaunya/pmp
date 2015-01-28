@@ -7,7 +7,7 @@ from PyQt4.QtCore import Qt, QRect
 from PyQt4.QtGui import QRegion, QPrinter
 from qtutil import PrintHandler
 from .widget import GanttWidget
-from .settings import ROW_HEIGHT, COLUMN_CHART, HEADER_HEIGHT, COLUMN_WIDTHS
+from .settings import ROW_HEIGHT, COLUMN_CHART, HEADER_HEIGHT
 from .settings import settings
 
 class GanttPrintHandler(PrintHandler):
@@ -87,7 +87,7 @@ class GanttPrintHandler(PrintHandler):
         obj.dev = Namespace()
         obj.log = Namespace()
         obj.scl = Namespace()
-        obj.log.headerWidth = sum(COLUMN_WIDTHS)
+        obj.log.headerWidth = sum(settings.columnWidth)
         obj.log.headerHeight = HEADER_HEIGHT
         obj.log.bodyWidth    = self._widget.preferableWidth()
         obj.log.bodyHeight   = bodyHeight

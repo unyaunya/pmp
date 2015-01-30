@@ -10,9 +10,65 @@ from .widget import GanttWidget
 from .settings import ROW_HEIGHT, COLUMN_CHART, HEADER_HEIGHT
 from .settings import settings
 
+class MyPageSettingDialog(QtGui.QDialog):
+    #def __init__(self):
+    #    pass
+    pass
+
+
+
+class MyPrintPreviewDialog(QtGui.QPrintPreviewDialog):
+    def __init__(self, printer, parent = None, flags = Qt.WindowFlags()):
+        super(MyPrintPreviewDialog, self).__init__(printer, parent, flags)
+        self._prepareToolBar()
+        self.pageSettingDialog = MyPageSettingDialog(self)
+
+    def _prepareToolBar(self):
+        tbs = self.findChildren(QtGui.QToolBar)
+        if len(tbs) <= 0:
+            self.toolbar = None
+            return
+        self.toolbar = tbs[0]
+        self.toolbar.addSeparator()
+        self.wgtRowsPerPage = self._createRowsPerPage()
+        self.toolbar.addWidget(self.wgtRowsPerPage)
+        self.toolbar.addAction(self._createPageSettingAction())
+
+
+    def _createRowsPerPage(self):
+        MINIMUM = 10
+        def _rowsPerPageChanged(index):
+            settings.print.ROWS_PER_PAGE = index+MINIMUM
+            self._refresh()
+        widget = QtGui.QComboBox(self)
+        for i in range(MINIMUM,100):
+            widget.addItem('1ページあたり%d行' % i)
+        widget.setCurrentIndex(settings.print.ROWS_PER_PAGE - MINIMUM)
+        widget.currentIndexChanged.connect(_rowsPerPageChanged)
+        return widget
+
+    def _createPageSettingAction(self):
+        #action = QtGui.QAction(QtGui.QIcon(), self.tr("settings"), self)
+        action = QtGui.QAction("□", self)
+        action.setCheckable(True)
+        action.setToolTip("ページ設定")
+        action.toggled.connect(self._togglePageSettingDialog)
+        return action
+
+    def _togglePageSettingDialog(self, value):
+        print(value)
+        if value == True:
+            self.pageSettingDialog.show()
+        else:
+            self.pageSettingDialog.hide()
+
+    def _refresh(self):
+        widget = self.findChild(QtGui.QPrintPreviewWidget)
+        widget.updatePreview()
+
 class GanttPrintHandler(PrintHandler):
     def __init__(self, ganttWidget):
-        super(GanttPrintHandler, self).__init__()
+        super(GanttPrintHandler, self).__init__(MyPrintPreviewDialog)
         self._printer = None
         self.ganttWidget = ganttWidget
         self._pri = Namespace()
@@ -69,7 +125,7 @@ class GanttPrintHandler(PrintHandler):
             #----
             top += height
             bh -= height
-        print(self._pageInfo)
+        print("self._pageInfo:", self._pageInfo)
 
     def getPrintRectInfo(self, printer):
         bodyHeight = 0
@@ -87,7 +143,8 @@ class GanttPrintHandler(PrintHandler):
         obj.dev = Namespace()
         obj.log = Namespace()
         obj.scl = Namespace()
-        obj.log.headerWidth = sum(settings.columnWidth)
+        print("settings.columnWidth", settings.columnWidth)
+        obj.log.headerWidth = sum(settings.columnWidth[:-1])
         obj.log.headerHeight = HEADER_HEIGHT
         obj.log.bodyWidth    = self._widget.preferableWidth()
         obj.log.bodyHeight   = bodyHeight
@@ -111,7 +168,7 @@ class GanttPrintHandler(PrintHandler):
         return obj
 
     def printPage(self, painter, pageNo, pageCount):
-        print(painter.device().pageRect(), painter.device().paperRect())
+        print("paintRect:", painter.device().pageRect(), painter.device().paperRect())
         painter.save()
         #-----------------------------------------------------------------------
         deviceRect = painter.device().pageRect()

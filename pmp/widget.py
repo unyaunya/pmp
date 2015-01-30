@@ -178,7 +178,6 @@ class GanttHeaderView(QtGui.QHeaderView):
 
     def _recordSectionSize(self, column, oldSize, newSize):
         settings.columnWidth[column] = newSize
-        print(settings.columnWidth)
 
     def resizeEvent(self, event):
         super(GanttHeaderView, self).resizeEvent(event)
@@ -678,7 +677,6 @@ class GanttWidget(Widget_):
         item = self.itemFromUuid(UUID(uuid))
         if item is None:
             return
-        print(uuid, item.name, item.start, item.end)
         self.insertAfter(ci, item.clone())
 
     #---------------------------------------------------------------------------

@@ -5,8 +5,8 @@ import sys
 from PyQt4 import QtCore, QtGui
 
 class PrintHandler(object):
-    def __init__(self):
-        pass
+    def __init__(self, previewDialogClass = QtGui.QPrintPreviewDialog):
+        self.previewDialogClass = previewDialogClass
 
     def printer(self):
         """printerオブジェクトを取得する。派生クラスでオーバライド"""
@@ -72,6 +72,6 @@ class PrintHandler(object):
 
     def printPreview(self):
         printer = self.printer()
-        preview = QtGui.QPrintPreviewDialog(printer)
+        preview = self.previewDialogClass(printer)
         preview.paintRequested.connect(self.print)
         preview.exec()

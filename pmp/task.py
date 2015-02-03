@@ -7,7 +7,7 @@ from .util import s2dt, dt
 class Task(object):
     """Taskクラス"""
 
-    def __init__(self, name='(未定)', start=None, end=None, pv=0, ev=0):
+    def __init__(self, name='(未定)', start=None, end=None, pv=0, ev=0, pic=''):
         self._pv = 0
         self._ev = 0
         #------------------------
@@ -16,6 +16,7 @@ class Task(object):
         self.end = end
         self.pv = pv
         self.ev = ev
+        self.pic = pic #person in charge
         self.children = []
         self.expanded = True
 

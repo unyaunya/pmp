@@ -23,9 +23,9 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         self.name = task.name
         self.start = toQDate(task.start)
         self.end = toQDate(task.end)
-        self.setText(COLUMN_ASIGNEE, "unknown")
         self.pv = task.pv
         self.ev = task.ev
+        self.pic = task.pic
         self.task = task
         self.setFlags(self.flags() | Qt.ItemIsEditable)
         if task.children is not None and len(task.children) > 0:
@@ -45,6 +45,8 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
             task.pv = self.pv
         elif column == COLUMN_EV:
             task.ev = self.ev
+        elif column == COLUMN_PIC:
+            task.pic = self.pic
 
     def isAggregated(self):
         return self.childCount() > 0
@@ -63,7 +65,11 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
                     return toQDate(self.task.maximumDate())
             elif role == Qt.ForegroundRole:
                 return _aggregatedTaskBrush
-        return super(TreeWidgetItem, self).data(column, role)
+        value = super(TreeWidgetItem, self).data(column, role)
+        if column == COLUMN_PIC:
+            if value is None:
+                value = "(未定)"
+        return value
 
     def setData(self, column, role, value):
         if role == Qt.EditRole or role == Qt.DisplayRole:
@@ -148,6 +154,14 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         if not isinstance(value, numbers.Real):
             return
         self.setData(COLUMN_EV, Qt.DisplayRole, value)
+
+    @property
+    def pic(self):
+        return self.data(COLUMN_PIC, Qt.DisplayRole)
+
+    @pic.setter
+    def pic(self, value):
+        self.setData(COLUMN_PIC, Qt.DisplayRole, value)
 
     def clone(self):
         return TreeWidgetItem(copy.deepcopy(self.task))

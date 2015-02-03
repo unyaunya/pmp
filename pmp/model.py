@@ -32,53 +32,41 @@ class TaskModel(Task):
             return json.load(f, object_hook=_from_json)
 
 def _to_json(obj):
-    if isinstance(obj, TaskModel):
-        return {'__class__': 'pygantt.TaskModel',
-                'name': obj.name,
-                'start': dt2s(obj.start),
-                'end': dt2s(obj.end),
-                'pv': obj.pv,
-                'ev': obj.ev,
-                'children': obj.children,
-                'expanded': obj.expanded,
-                }
-    if isinstance(obj, Task):
-        return {'__class__': 'pygantt.Task',
-                'name': obj.name,
-                'start': dt2s(obj.start),
-                'end': dt2s(obj.end),
-                'pv': obj.pv,
-                'ev': obj.ev,
-                'children': obj.children,
-                'expanded': obj.expanded,
-                }
+    if isinstance(obj, (TaskModel, Task)):
+        if isinstance(obj, TaskModel):
+            aDict = {'__class__': 'pygantt.TaskModel'}
+        else:
+            aDict = {'__class__': 'pygantt.Task'}
+        aDict['name']       = obj.name
+        aDict['start']      = dt2s(obj.start)
+        aDict['end']        = dt2s(obj.end)
+        aDict['pv']         = obj.pv
+        aDict['ev']         = obj.ev
+        aDict['children']   = obj.children
+        aDict['expanded']   = obj.expanded
+        if obj.pic is not None and len(obj.pic) > 0:
+            aDict['pic']   = obj.pic
+        return aDict
     raise TypeError(repr(obj) + ' is not JSON serializable')
 
 def _from_json(json_object):
-    if '__class__' in json_object:
-        if json_object['__class__'] == 'pygantt.Task':
-            model = Task(
-                    name = json_object['name'],
-                    start = s2dt(json_object['start']),
-                    end = s2dt(json_object['end']),
-                    pv = json_object['pv'],
-                    ev = json_object['ev'],
+    jso = json_object
+    if '__class__' in jso:
+        _class = None
+        if jso['__class__'] == 'pygantt.Task':
+            _class = Task
+        elif jso['__class__'] == 'pygantt.TaskModel':
+            _class = TaskModel
+        if _class is not None:
+            model = _class(
+                    name = jso['name'],
+                    start = s2dt(jso['start']),
+                    end = s2dt(jso['end']),
+                    pv = jso['pv'],
+                    ev = jso['ev'],
                     )
-            model.children = json_object['children']
-            model.expanded = True
-            try:
-                model.expanded = json_object['expanded']
-            except:
-                pass
-            return model
-        if json_object['__class__'] == 'pygantt.TaskModel':
-            model = TaskModel(
-                    name = json_object['name'],
-                    start = s2dt(json_object['start']),
-                    end = s2dt(json_object['end']),
-                    pv = json_object['pv'],
-                    ev = json_object['ev'],
-                    )
-            model.children = json_object['children']
+            model.children = jso['children']
+            model.expanded = jso.get('expanded', True)
+            model.pic = jso.get('pic', None)
             return model
     return json_object

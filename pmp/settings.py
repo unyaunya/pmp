@@ -30,14 +30,13 @@ APPLICATION_NAME = "PMP(Poor Man's ms-Projcect)"
 #-------------------------------------------------------------------------------
 HEADER_LABELS = ["項目名","開始日","終了日","担当者", "PV", "EV", ""]
 
-COLUMN_NAME  = 0
-COLUMN_START  = 1
-COLUMN_END  = 2
-COLUMN_ASIGNEE  = 3
-COLUMN_PV  = 4
-COLUMN_EV  = 5
-COLUMN_CHART = 6
-
+COLUMN_NAME     = 0
+COLUMN_START    = 1
+COLUMN_END      = 2
+COLUMN_PIC      = 3
+COLUMN_PV       = 4
+COLUMN_EV       = 5
+COLUMN_CHART    = 6
 
 
 #-------------------------------------------------------------------------------
@@ -131,12 +130,12 @@ dlgSpecs = [
     ],
     #['列幅',
     #    #"項目名","開始日","終了日","担当者", "PV", "EV"
-    #    Property('項目名', int, 'width.NAME',    200),
-    #    Property('開始日', int, 'width.START',   80),
-    #    Property('終了日', int, 'width.END',     80),
-    #    Property('担当者', int, 'width.ASIGNEE', 0),
-    #    Property('PV',     int, 'width.PV',      40),
-    #    Property('EV',     int, 'width.EV',      40),
+    #    Property('項目名', int, 'width.NAME', 200),
+    #    Property('開始日', int, 'width.START',80),
+    #    Property('終了日', int, 'width.END',  80),
+    #    Property('担当者', int, 'width.PIC',  0),
+    #    Property('PV',     int, 'width.PV',   40),
+    #    Property('EV',     int, 'width.EV',   40),
     #],
     ['その他',
         Property('イナズマ線の日付', date, 'misc.DATE_OF_PROGRESS_LINE', date.today()),

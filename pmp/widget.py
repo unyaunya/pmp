@@ -1,7 +1,7 @@
 #! python3
 # -*- coding: utf-8 -*-
 
-import os
+import os, sys
 
 from datetime import datetime as dt, timedelta
 from uuid import UUID
@@ -464,12 +464,11 @@ class GanttWidget(Widget_):
             self._currentFileName = fileName
             self.currentFileChanged.emit(self._currentFileName)
         except :
+            print("Unexpected error:", sys.exc_info())
+            QtGui.QMessageBox.warning(self,
+                "がんと", "<%s>を開けませんでした" % fileName, "OK")
             if DEBUG:
                 raise
-            else:
-                print("Unexpected error:", sys.exc_info())
-                QtGui.QMessageBox.warning(self,
-                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
 
     def saveFile(self, fileName):
         try:

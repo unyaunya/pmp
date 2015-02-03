@@ -283,9 +283,7 @@ class Widget_(QtGui.QTreeWidget):
     def dateOfProgressLine(self, value):
         if not isinstance(value, (date, datetime)):
             return
-        if isinstance(value, date):
-            value = datetime(value.year, value.month, value.day)
-        self._dateOfProgressLine = value
+        self._dateOfProgressLine = to_datetime(value)
         self.refresh()
 
     def _sync_expand_collapse(self, items):

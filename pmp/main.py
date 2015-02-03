@@ -3,12 +3,13 @@
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QLabel
-from qtutil import App, MainWindow, createAction, PropertyDialog
+from qtutil import App, MainWindow, createAction
 from pmp import GanttWidget, GanttPrintHandler
 from pmp import config
 from pmp.settings import APPLICATION_NAME, Settings, settings, dlgSpecs
 from pmp.projectinfodialog import ProjectInfoDialog
 from pmp.evmdialog import EvmDialog
+from pmp.optiondialog import OptionDialog
 
 class GanttMainWindow(MainWindow):
     def __init__(self, parent=None):
@@ -121,15 +122,7 @@ class GanttMainWindow(MainWindow):
         ProjectInfoDialog(APPLICATION_NAME, self).exec_()
 
     def setOptions(self):
-        dialog = PropertyDialog(APPLICATION_NAME+":オプション設定", self)
-        dialog.setProperties(dlgSpecs, settings)
-        ret = dialog.exec_()
-        print(ret)
-        if ret != QtGui.QDialog.Accepted:
-            return
-        settings.merge(dialog.settings)
-        Settings.dump(settings, "settings.ini")
-        self.ganttWidget.dateOfProgressLine = settings.misc.DATE_OF_PROGRESS_LINE
+        OptionDialog.createModal(self.ganttWidget, self).exec_()
 
     def setSelectModeRow(self):
         self.ganttWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)

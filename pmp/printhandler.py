@@ -9,19 +9,24 @@ from qtutil import PrintHandler
 from .widget import GanttWidget
 from .settings import ROW_HEIGHT, COLUMN_CHART, HEADER_HEIGHT
 from .settings import settings
-
-class MyPageSettingDialog(QtGui.QDialog):
-    #def __init__(self):
-    #    pass
-    pass
-
-
+from .optiondialog import OptionDialog
 
 class MyPrintPreviewDialog(QtGui.QPrintPreviewDialog):
-    def __init__(self, printer, parent = None, flags = Qt.WindowFlags()):
+    def __init__(self, ganttWidget, printer, parent = None, flags = Qt.WindowFlags()):
         super(MyPrintPreviewDialog, self).__init__(printer, parent, flags)
         self._prepareToolBar()
-        self.pageSettingDialog = MyPageSettingDialog(self)
+        self.pageSettingDialog = self._optionDialog(ganttWidget)
+
+    def _optionDialog(self, ganttWidget):
+        dialog = OptionDialog.createModeless(ganttWidget, self)
+        def _ok():
+            dialog.save()
+            self._refresh()
+        dialog.buttonOk.clicked.connect(_ok)
+        def _optionClosed():
+            self.actOption.setChecked(False)
+        dialog.finished.connect(_optionClosed)
+        return dialog
 
     def _prepareToolBar(self):
         tbs = self.findChildren(QtGui.QToolBar)
@@ -32,8 +37,8 @@ class MyPrintPreviewDialog(QtGui.QPrintPreviewDialog):
         self.toolbar.addSeparator()
         self.wgtRowsPerPage = self._createRowsPerPage()
         self.toolbar.addWidget(self.wgtRowsPerPage)
-        self.toolbar.addAction(self._createPageSettingAction())
-
+        self.actOption = self._createPageSettingAction()
+        self.toolbar.addAction(self.actOption)
 
     def _createRowsPerPage(self):
         MINIMUM = 10
@@ -47,11 +52,15 @@ class MyPrintPreviewDialog(QtGui.QPrintPreviewDialog):
         widget.currentIndexChanged.connect(_rowsPerPageChanged)
         return widget
 
+    def _createOptionutton(self):
+        widget = QtGui.QButton('オプション')
+        return widget
+
     def _createPageSettingAction(self):
         #action = QtGui.QAction(QtGui.QIcon(), self.tr("settings"), self)
-        action = QtGui.QAction("□", self)
+        action = QtGui.QAction("オプション", self)
         action.setCheckable(True)
-        action.setToolTip("ページ設定")
+        action.setToolTip("オプション設定")
         action.toggled.connect(self._togglePageSettingDialog)
         return action
 
@@ -68,7 +77,7 @@ class MyPrintPreviewDialog(QtGui.QPrintPreviewDialog):
 
 class GanttPrintHandler(PrintHandler):
     def __init__(self, ganttWidget):
-        super(GanttPrintHandler, self).__init__(MyPrintPreviewDialog)
+        super(GanttPrintHandler, self).__init__()
         self._printer = None
         self.ganttWidget = ganttWidget
         self._pri = Namespace()
@@ -81,6 +90,9 @@ class GanttPrintHandler(PrintHandler):
             #self.translate(-15, -15)
         self._printer.setDocName(self.ganttWidget.ganttModel.name)
         return self._printer
+
+    def createPreviewDialog(self, printer):
+        return MyPrintPreviewDialog(self.ganttWidget, printer)
 
     @property
     def horizontalPageCount(self):

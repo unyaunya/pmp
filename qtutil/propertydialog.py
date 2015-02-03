@@ -63,12 +63,11 @@ class Property(object):
         self.defaultValue = defaultValue
 
 class PropertyDialog(QtGui.QDialog):
-    def __init__(self, title, parent):
+    def __init__(self, title, parent = None):
         super(PropertyDialog, self).__init__(parent)
-        self.mainWindow = parent
         self.setWindowTitle(title)
         self.buttonOk = QtGui.QPushButton("buttonOk", self)
-        self.buttonOk.setText(self.tr("&Save"))
+        self.buttonOk.setText(self.tr("&OK"))
         self.buttonOk.setAutoDefault(1)
         self.buttonOk.setDefault(1)
 
@@ -83,7 +82,6 @@ class PropertyDialog(QtGui.QDialog):
         main_layout.addWidget(self.buttonOk, 1, 2)
         self.setLayout(main_layout)
         #----------------------------------------------------------------------
-        self.buttonOk.clicked.connect(self.accept)
 
     def setProperties(self, dlgSpecs, settings):
         self.dlgSpecs = dlgSpecs
@@ -96,7 +94,6 @@ class PropertyDialog(QtGui.QDialog):
             item = TreeWidgetItem(e, self.settings)
             parent.addChild(item)
             widget._expand([item])
-
 
 class TreeWidgetItem(QtGui.QTreeWidgetItem):
     def __init__(self, data=None, settings=None):
@@ -138,8 +135,8 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         super(TreeWidgetItem, self).data(column, role)
 
     def setData(self, column, role, value):
+        print(column, role, value, self.option.key)
         if role == Qt.EditRole:
-            print(column, role, value, self.option.key)
             if column == 1:
                 if self.option.typeName == date:
                     value = to_date(value.date())

@@ -178,6 +178,24 @@ class GanttHeaderView(QtGui.QHeaderView):
 
     def _recordSectionSize(self, column, oldSize, newSize):
         settings.columnWidth[column] = newSize
+        if column == COLUMN_START:
+            key = 'start'
+        elif column == COLUMN_END:
+            key = 'end'
+        elif column == COLUMN_PIC:
+            key = 'pic'
+        elif column == COLUMN_PV:
+            key = 'pv'
+        elif column == COLUMN_EV:
+            key = 'ev'
+        else:
+            return
+        obj = settings.column[key]
+        if oldSize > 0 and newSize == 0:
+            obj.visible = False
+        else:
+            obj.visible = True
+            obj.width = newSize
 
     def resizeEvent(self, event):
         super(GanttHeaderView, self).resizeEvent(event)
@@ -258,8 +276,9 @@ class Widget_(QtGui.QTreeWidget):
         self._dateOfProgressLine = dt.today()
 
     def _initSectionSize(self):
-        for i in range(len(settings.columnWidth)):
-            self.header().resizeSection(i, settings.columnWidth[i])
+        #for i in range(len(settings.columnWidth)):
+        #    self.header().resizeSection(i, settings.columnWidth[i])
+        settings.applyTo(self)
 
     @property
     def ganttModel(self):

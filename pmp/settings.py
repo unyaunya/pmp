@@ -7,15 +7,42 @@ from qtutil import Namespace, Property
 from .serialize import to_json, from_json
 
 class Settings(Namespace):
+    KEY2IDX = ['name', 'start', 'end', 'pic', 'pv', 'ev', 'chart']
+
+    def applyTo(self, ganttWidget):
+        ganttWidget.dateOfProgressLine = self.misc.DATE_OF_PROGRESS_LINE
+        print("settings.column.start.visible", settings.column.start.visible)
+        self._columnResize(ganttWidget, COLUMN_START)
+        self._columnResize(ganttWidget, COLUMN_END)
+        self._columnResize(ganttWidget, COLUMN_PIC)
+        self._columnResize(ganttWidget, COLUMN_PV)
+        self._columnResize(ganttWidget, COLUMN_EV)
+
+    def _columnIndexFromKey(self, key):
+        for i in len(self.KEY2IDX):
+            if key == self.KEY2IDX[i]:
+                return i
+        return -1
+
+    def _keyFromColumnIndex(self, columnIndex):
+        return self.KEY2IDX[columnIndex]
+
+    def _columnResize(self, ganttWidget, columnIndex):
+        obj = settings.column[self.KEY2IDX[columnIndex]]
+        ganttWidget.header().resizeSection(columnIndex, obj.width)
+        ganttWidget.setColumnHidden(columnIndex, not obj.visible)
+
     @staticmethod
     def dump(obj, path):
         with codecs.open(path, 'w', 'utf8') as f:
+            return
             json.dump(obj, f, indent=2, default=to_json, ensure_ascii=False)
 
     @staticmethod
     def load(path):
         with open(path, mode='r', encoding='utf-8') as f:
             return json.load(f, object_hook=from_json)
+
 
 settings = Settings()
 
@@ -108,6 +135,20 @@ PROGRESS_LINE_COLOR     = (255,  0,  0,255) #イナズマ線色
 settings.columnWidth     = [360, 80, 80, 0, 40, 40, 600]
 
 #-------------------------------------------------------------------------------
+#列:幅、表示/非表示
+#-------------------------------------------------------------------------------
+settings.column.start.visible   = True
+settings.column.start.width     = 80
+settings.column.end.visible     = True
+settings.column.end.width       = 80
+settings.column.pic.visible     = True
+settings.column.pic.width       = 80
+settings.column.pv.visible      = True
+settings.column.pv.width        = 40
+settings.column.ev.visible      = True
+settings.column.ev.width        = 40
+
+#-------------------------------------------------------------------------------
 #印刷諸元
 #-------------------------------------------------------------------------------
 settings.print.HORIZONTAL_PAGE_COUNT    = 1     #横のページ数
@@ -127,6 +168,14 @@ dlgSpecs = [
         Property('ヘッダ高さの割合', float, 'print.HEADER_HEIGHT_RATIO', 0.10),
         Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 70),
         Property('横のページ数', int, 'print.HORIZONTAL_PAGE_COUNT', 1),
+    ],
+    ['列表示/非表示',
+        #"開始日","終了日","担当者", "PV", "EV"
+        Property('開始日', bool, 'column.start.visible',True),
+        Property('終了日', bool, 'column.end.visible',  True),
+        Property('担当者', bool, 'column.pic.visible',  True),
+        Property('PV',     bool, 'column.pv.visible',   True),
+        Property('EV',     bool, 'column.ev.visible',   True),
     ],
     #['列幅',
     #    #"項目名","開始日","終了日","担当者", "PV", "EV"

@@ -132,7 +132,7 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
                 if self.option.typeName == date:
                     value = value.strftime("%Y/%m/%d")
                 return value
-        super(TreeWidgetItem, self).data(column, role)
+        return super(TreeWidgetItem, self).data(column, role)
 
     def setData(self, column, role, value):
         print(column, role, value, self.option.key)

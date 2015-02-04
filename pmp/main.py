@@ -136,8 +136,9 @@ class GanttMainWindow(MainWindow):
         EvmDialog(APPLICATION_NAME, self).exec_()
 
 if __name__ == '__main__':
-    def onQuit():
-        Settings.dump(settings, "settings.ini")
+    #def onQuit():
+    #    Settings.dump(settings, "settings.ini")
     app = App()
-    app.app.aboutToQuit.connect(onQuit)
+    #app.app.aboutToQuit.connect(onQuit)
     app.exec(GanttMainWindow)
+    Settings.dump(settings, "settings.ini")

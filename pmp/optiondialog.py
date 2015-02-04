@@ -13,7 +13,7 @@ class OptionDialog(PropertyDialog):
     def save(self):
         settings.merge(self.settings)
         Settings.dump(settings, "settings.ini")
-        self.ganttWidget.dateOfProgressLine = settings.misc.DATE_OF_PROGRESS_LINE
+        settings.applyTo(self.ganttWidget)
 
     def saveAndAccept(self):
         self.save()

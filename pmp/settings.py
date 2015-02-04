@@ -35,7 +35,7 @@ class Settings(Namespace):
     @staticmethod
     def dump(obj, path):
         with codecs.open(path, 'w', 'utf8') as f:
-            return
+            #return
             json.dump(obj, f, indent=2, default=to_json, ensure_ascii=False)
 
     @staticmethod
@@ -159,7 +159,11 @@ settings.print.HEADER_WIDTH_RATIO       = 0.25  #ヘッダ幅の割合(=ヘッ�
 #-------------------------------------------------------------------------------
 #その他の諸元
 #-------------------------------------------------------------------------------
+settings.misc.DATE_OF_PROGRESS_LINE = date.today()
 
+#-------------------------------------------------------------------------------
+#オプションダイアログ表示
+#-------------------------------------------------------------------------------
 dlgSpecs = [
     #'だみよ',
     #Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 63),

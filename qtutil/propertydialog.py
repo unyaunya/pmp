@@ -125,10 +125,11 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
             if column == 0:
                 return self.option.displayName
             if column == 1:
-                print(self.option.key)
+                #print(self.option.key)
                 if self.option.key is None:
                     return None
                 value = self.settings.getData(self.option.key, self.option.defaultValue)
+                #print(type(value), value)
                 if self.option.typeName == date:
                     value = value.strftime("%Y/%m/%d")
                 return value

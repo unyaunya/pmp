@@ -18,10 +18,11 @@ class GanttMainWindow(MainWindow):
             _settings = Settings.load("settings.ini")
         except:
             _settings = None
-            self.information("settings.iniが読めない(;_;)")
         if _settings is not None:
             settings.merge(_settings)
         super(GanttMainWindow, self).__init__(parent, APPLICATION_NAME)
+        if _settings is None:
+            self.information("settings.iniが読めない(;_;)")
 
     def setup_gui(self):
         super(GanttMainWindow, self).setup_gui()
@@ -135,10 +136,12 @@ class GanttMainWindow(MainWindow):
     def showEVM(self):
         EvmDialog(APPLICATION_NAME, self).exec_()
 
-if __name__ == '__main__':
-    #def onQuit():
-    #    Settings.dump(settings, "settings.ini")
+def exec():
     app = App()
-    #app.app.aboutToQuit.connect(onQuit)
     app.exec(GanttMainWindow)
+    print("Settings.dump:start")
     Settings.dump(settings, "settings.ini")
+    print("Settings.dump:end")
+
+if __name__ == '__main__':
+    exec()

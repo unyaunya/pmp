@@ -63,7 +63,9 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QApplication.aboutQt()
 
     def quit(self):
-        QtGui.QApplication.quit()
+        print("quit called")
+        QtGui.QApplication.exit()
+        print("quit end")
 
     #---------------------------------------------------------------------------
     #   staticmethod

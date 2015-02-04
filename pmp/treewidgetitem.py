@@ -67,8 +67,9 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
                 return _aggregatedTaskBrush
         value = super(TreeWidgetItem, self).data(column, role)
         if column == COLUMN_PIC:
-            if value is None:
-                value = "(未定)"
+            if role == Qt.DisplayRole:
+                if value is None:
+                    value = "(未定)"
         return value
 
     def setData(self, column, role, value):

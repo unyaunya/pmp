@@ -107,7 +107,10 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
             children = TreeWidgetItem.Items(data[1:], settings)
         elif isinstance(data, Property):
             self.option = data
-            self.setFlags(self.flags() | Qt.ItemIsEditable)
+            if self.option.typeName == bool:
+                self.setFlags(self.flags() | Qt.ItemIsUserCheckable)
+            else:
+                self.setFlags(self.flags() | Qt.ItemIsEditable)
             children = None
         else:
             raise Error
@@ -132,19 +135,33 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
                 #print(type(value), value)
                 if self.option.typeName == date:
                     value = value.strftime("%Y/%m/%d")
+                if self.option.typeName == bool:
+                    value = ''
                 return value
+        if role == Qt.CheckStateRole:
+            if column == 1 and self.option.typeName == bool:
+                if self.settings.getData(self.option.key, self.option.defaultValue):
+                    checkState = Qt.Checked
+                else:
+                    checkState = Qt.Unchecked
+                return checkState
         return super(TreeWidgetItem, self).data(column, role)
 
     def setData(self, column, role, value):
         print(column, role, value, self.option.key)
+        if column != 1:
+            return
         if role == Qt.EditRole:
-            if column == 1:
-                if self.option.typeName == date:
-                    value = to_date(value.date())
-                else:
-                    value = self.option.typeName(value)
-                self.settings.setData(self.option.key, value)
-                print(self.settings)
+            if self.option.typeName == date:
+                value = to_date(value.date())
+            else:
+                value = self.option.typeName(value)
+        elif role == Qt.CheckStateRole:
+            value = True if value == Qt.Checked else False
+        else:
+            return
+        self.settings.setData(self.option.key, value)
+        print(self.settings)
 
     @staticmethod
     def Items(options, settings):

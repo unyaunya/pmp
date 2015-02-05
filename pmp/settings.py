@@ -12,11 +12,16 @@ class Settings(Namespace):
     def applyTo(self, ganttWidget):
         ganttWidget.dateOfProgressLine = self.misc.DATE_OF_PROGRESS_LINE
         print("settings.column.start.visible", settings.column.start.visible)
+        self._columnResize(ganttWidget, COLUMN_NAME)
         self._columnResize(ganttWidget, COLUMN_START)
         self._columnResize(ganttWidget, COLUMN_END)
         self._columnResize(ganttWidget, COLUMN_PIC)
         self._columnResize(ganttWidget, COLUMN_PV)
         self._columnResize(ganttWidget, COLUMN_EV)
+        self._columnResize(ganttWidget, COLUMN_CHART)
+
+    def getColumn(self, column):
+        return settings.column[self._keyFromColumnIndex(column)]
 
     def _columnIndexFromKey(self, key):
         for i in len(self.KEY2IDX):
@@ -132,11 +137,13 @@ PROGRESS_LINE_COLOR     = (255,  0,  0,255) #イナズマ線色
 #-------------------------------------------------------------------------------
 #列幅
 #-------------------------------------------------------------------------------
-settings.columnWidth     = [360, 80, 80, 0, 40, 40, 600]
+#settings.columnWidth     = [360, 80, 80, 0, 40, 40, 600]
 
 #-------------------------------------------------------------------------------
 #列:幅、表示/非表示
 #-------------------------------------------------------------------------------
+settings.column.name.visible    = True
+settings.column.name.width      = 360
 settings.column.start.visible   = True
 settings.column.start.width     = 80
 settings.column.end.visible     = True
@@ -147,6 +154,8 @@ settings.column.pv.visible      = True
 settings.column.pv.width        = 40
 settings.column.ev.visible      = True
 settings.column.ev.width        = 40
+settings.column.chart.visible   = True
+settings.column.chart.width     = 600
 
 #-------------------------------------------------------------------------------
 #印刷諸元
@@ -173,13 +182,15 @@ dlgSpecs = [
         Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 70),
         Property('横のページ数', int, 'print.HORIZONTAL_PAGE_COUNT', 1),
     ],
-    ['列表示/非表示',
+    ['表示対象列',
         #"開始日","終了日","担当者", "PV", "EV"
+        Property('項目名', bool, 'column.name.visible',True),
         Property('開始日', bool, 'column.start.visible',True),
         Property('終了日', bool, 'column.end.visible',  True),
         Property('担当者', bool, 'column.pic.visible',  True),
         Property('PV',     bool, 'column.pv.visible',   True),
         Property('EV',     bool, 'column.ev.visible',   True),
+        Property('チャート',bool, 'column.chart.visible',   True),
     ],
     #['列幅',
     #    #"項目名","開始日","終了日","担当者", "PV", "EV"

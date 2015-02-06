@@ -242,12 +242,6 @@ class Widget_(QtGui.QTreeWidget):
         self._csb = ChartScrollBar(self)
         self.setHeader(GanttHeaderView(self))
         self.ganttModel = model
-
-        self.pen4progressLine = QPen(tuple2color(PROGRESS_LINE_COLOR))
-        self.pen4chartBoundary = QPen(tuple2color(CHART_BOUNDARY_COLOR))
-        self.brush4chartFill = tuple2brush(CHART_COLOR)
-        self.brush4chartFillProgress = tuple2brush(PROGRESS_COLOR)
-        self.brush4aggregatedTask = tuple2brush(AGGREGATED_TASK_COLOR)
         self.cdi = CalendarDrawingInfo()
         self.setHeaderLabels(HEADER_LABELS)
         self._dateOfProgressLine = dt.today()

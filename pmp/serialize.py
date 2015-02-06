@@ -6,6 +6,7 @@ from datetime import date
 from .util import s2dt, dt2s
 from .task import Task
 from .model import TaskModel
+from PyQt4.QtGui import QColor
 
 def to_json(obj):
     if isinstance(obj, TaskModel):
@@ -31,6 +32,10 @@ def to_json(obj):
     if isinstance(obj, date):
         return {'__class__': 'datetime.date',
                 'value': dt2s(obj)
+                }
+    if isinstance(obj, QColor):
+        return {'__class__': 'PyQt4.QtGui.QColor',
+                'value': obj.getRgb()
                 }
     raise TypeError(repr(obj) + ' is not JSON serializable')
 
@@ -64,4 +69,7 @@ def from_json(json_object):
         if json_object['__class__'] == 'datetime.date':
             value = s2dt(json_object['value'])
             return date(value.year, value.month, value.day)
+        if json_object['__class__'] == 'PyQt4.QtGui.QColor':
+            rgba = json_object['value']
+            return QColor(rgba[0], rgba[1], rgba[2], rgba[3])
     return json_object

@@ -3,15 +3,21 @@
 
 import json, codecs
 from datetime import date, datetime
-from qtutil import Namespace, Property
+from qtutil import Namespace
+from qtutil import Property as _P
 from .serialize import to_json, from_json
+from PyQt4.QtGui import QPen, QColor, QBrush
 
 class Settings(Namespace):
     KEY2IDX = ['name', 'start', 'end', 'pic', 'pv', 'ev', 'chart']
 
     def applyTo(self, ganttWidget):
+        ganttWidget.pen4progressLine = QPen(self.color.progressLine)
+        ganttWidget.pen4chartBoundary = QPen(self.color.boundary)
+        ganttWidget.brush4chartFill = QBrush(self.color.chart)
+        ganttWidget.brush4chartFillProgress = QBrush(self.color.progress)
+        ganttWidget.brush4aggregatedTask = QBrush(self.color.aggregatedTask)
         ganttWidget.dateOfProgressLine = self.misc.DATE_OF_PROGRESS_LINE
-        print("settings.column.start.visible", settings.column.start.visible)
         self._columnResize(ganttWidget, COLUMN_NAME)
         self._columnResize(ganttWidget, COLUMN_START)
         self._columnResize(ganttWidget, COLUMN_END)
@@ -22,6 +28,14 @@ class Settings(Namespace):
 
     def getColumn(self, column):
         return settings.column[self._keyFromColumnIndex(column)]
+
+    def getHeaderWidth(self):
+        w = 0
+        for i in range(COLUMN_CHART):
+            c = self.getColumn(i)
+            if c.visible:
+                w += c.width
+        return w
 
     def _columnIndexFromKey(self, key):
         for i in len(self.KEY2IDX):
@@ -135,9 +149,13 @@ AGGREGATED_TASK_COLOR   = ( 64,128,255,255) #チャート塗潰し色
 PROGRESS_LINE_COLOR     = (255,  0,  0,255) #イナズマ線色
 
 #-------------------------------------------------------------------------------
-#列幅
+#表示色
 #-------------------------------------------------------------------------------
-#settings.columnWidth     = [360, 80, 80, 0, 40, 40, 600]
+settings.color.boundary       = QColor(128,128,128,128) #チャート枠線色
+settings.color.chart          = QColor( 64,128,128,255) #チャート塗潰し色
+settings.color.progress       = QColor(160, 64, 64,255) #チャート内の進捗率塗潰し色
+settings.color.aggregatedTask = QColor( 64,128,255,255) #チャート塗潰し色
+settings.color.progressLine   = QColor(255,  0,  0,255) #イナズマ線色
 
 #-------------------------------------------------------------------------------
 #列:幅、表示/非表示
@@ -174,34 +192,30 @@ settings.misc.DATE_OF_PROGRESS_LINE = date.today()
 #オプションダイアログ表示
 #-------------------------------------------------------------------------------
 dlgSpecs = [
-    #'だみよ',
-    #Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 63),
+    ['表示色',
+        _P('枠線', QColor, 'color.boundary', QColor(128,128,128,128)),
+        _P('チャート', QColor, 'color.chart', QColor( 64,128,128,255)),
+        _P('進捗率', QColor, 'color.progress', QColor(160, 64, 64,255)),
+        _P('集約タスク', QColor, 'color.aggregatedTask', QColor( 64,128,128,255)),
+        _P('イナズマ線', QColor, 'color.progressLine', QColor( 64,128,128,255)),
+    ],
     ['印刷',
-        Property('ヘッダ幅の割合', float, 'print.HEADER_WIDTH_RATIO', 0.25),
-        Property('ヘッダ高さの割合', float, 'print.HEADER_HEIGHT_RATIO', 0.10),
-        Property('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 70),
-        Property('横のページ数', int, 'print.HORIZONTAL_PAGE_COUNT', 1),
+        _P('ヘッダ幅の割合', float, 'print.HEADER_WIDTH_RATIO', 0.25),
+        _P('ヘッダ高さの割合', float, 'print.HEADER_HEIGHT_RATIO', 0.10),
+        _P('1ページあたりの行数', int, 'print.ROWS_PER_PAGE', 70),
+        _P('横のページ数', int, 'print.HORIZONTAL_PAGE_COUNT', 1),
     ],
     ['表示対象列',
         #"開始日","終了日","担当者", "PV", "EV"
-        Property('項目名', bool, 'column.name.visible',True),
-        Property('開始日', bool, 'column.start.visible',True),
-        Property('終了日', bool, 'column.end.visible',  True),
-        Property('担当者', bool, 'column.pic.visible',  True),
-        Property('PV',     bool, 'column.pv.visible',   True),
-        Property('EV',     bool, 'column.ev.visible',   True),
-        Property('チャート',bool, 'column.chart.visible',   True),
+        _P('項目名', bool, 'column.name.visible',True),
+        _P('開始日', bool, 'column.start.visible',True),
+        _P('終了日', bool, 'column.end.visible',  True),
+        _P('担当者', bool, 'column.pic.visible',  True),
+        _P('PV',     bool, 'column.pv.visible',   True),
+        _P('EV',     bool, 'column.ev.visible',   True),
+        _P('チャート',bool, 'column.chart.visible',   True),
     ],
-    #['列幅',
-    #    #"項目名","開始日","終了日","担当者", "PV", "EV"
-    #    Property('項目名', int, 'width.NAME', 200),
-    #    Property('開始日', int, 'width.START',80),
-    #    Property('終了日', int, 'width.END',  80),
-    #    Property('担当者', int, 'width.PIC',  0),
-    #    Property('PV',     int, 'width.PV',   40),
-    #    Property('EV',     int, 'width.EV',   40),
-    #],
     ['その他',
-        Property('イナズマ線の日付', date, 'misc.DATE_OF_PROGRESS_LINE', date.today()),
-    ]
+        _P('イナズマ線の日付', date, 'misc.DATE_OF_PROGRESS_LINE', date.today()),
+    ],
 ]

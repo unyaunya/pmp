@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import QLabel
+from PyQt4.QtGui import QLabel, QColorDialog
 from PyQt4.QtCore import Qt
 from .misc import to_date
 from .namespace import Namespace
@@ -48,11 +48,23 @@ class PropertyTreeWidget(QtGui.QTreeWidget):
         self.header().resizeSection(1, 200)
         self.setItemDelegateForColumn(0, NoEditItemDelegate(self))
         self.setItemDelegateForColumn(1, ItemDelegate(self))
+        self.itemClicked.connect(self._itemClicked)
 
     def _expand(self, items):
         for item in items:
             self._expand(item.childItems())
             self.expandItem(item)
+
+    def _itemClicked(self, item, column):
+        if item.option.typeName != QtGui.QColor:
+            return
+        color = QColorDialog.getColor(item.getRawData(), self.parent(),
+                    "色選択："+item.option.displayName,
+                    QColorDialog.ColorDialogOptions(
+                        QColorDialog.ShowAlphaChannel))
+        #color = QtGui.QColorDialog.getColor(item.getRawData())
+        if color.isValid():
+            item.setRawData(color)
 
 
 class Property(object):
@@ -131,7 +143,7 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
                 #print(self.option.key)
                 if self.option.key is None:
                     return None
-                value = self.settings.getData(self.option.key, self.option.defaultValue)
+                value = self.getRawData()
                 #print(type(value), value)
                 if self.option.typeName == date:
                     value = value.strftime("%Y/%m/%d")
@@ -140,11 +152,14 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
                 return value
         if role == Qt.CheckStateRole:
             if column == 1 and self.option.typeName == bool:
-                if self.settings.getData(self.option.key, self.option.defaultValue):
+                if self.getRawData():
                     checkState = Qt.Checked
                 else:
                     checkState = Qt.Unchecked
                 return checkState
+        if role == Qt.DecorationRole:
+            if self.option.typeName == QtGui.QColor:
+                return self.getRawData()
         return super(TreeWidgetItem, self).data(column, role)
 
     def setData(self, column, role, value):
@@ -162,6 +177,12 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
             return
         self.settings.setData(self.option.key, value)
         print(self.settings)
+
+    def getRawData(self):
+        return self.settings.getData(self.option.key, self.option.defaultValue)
+
+    def setRawData(self, value):
+        return self.settings.setData(self.option.key, value)
 
     @staticmethod
     def Items(options, settings):

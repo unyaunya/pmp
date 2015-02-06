@@ -156,7 +156,7 @@ class GanttPrintHandler(PrintHandler):
         obj.log = Namespace()
         obj.scl = Namespace()
         print("settings.columnWidth", settings.columnWidth)
-        obj.log.headerWidth = sum(settings.columnWidth[:-1])
+        obj.log.headerWidth = settings.getHeaderWidth()
         obj.log.headerHeight = HEADER_HEIGHT
         obj.log.bodyWidth    = self._widget.preferableWidth()
         obj.log.bodyHeight   = bodyHeight

@@ -194,9 +194,9 @@ settings.misc.DATE_OF_PROGRESS_LINE = date.today()
 dlgSpecs = [
     ['表示色',
         _P('枠線', QColor, 'color.boundary', QColor(128,128,128,128)),
-        _P('チャート', QColor, 'color.chart', QColor( 64,128,128,255)),
+        _P('チャート', QColor, 'color.chart', QColor( 64,128,128,128)),
         _P('進捗率', QColor, 'color.progress', QColor(160, 64, 64,255)),
-        _P('集約タスク', QColor, 'color.aggregatedTask', QColor( 64,128,128,255)),
+        _P('集約タスク', QColor, 'color.aggregatedTask', QColor( 64,128,255,128)),
         _P('イナズマ線', QColor, 'color.progressLine', QColor( 64,128,128,255)),
     ],
     ['印刷',

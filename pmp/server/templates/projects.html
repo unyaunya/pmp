@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}プロジェクト一覧{% endblock %}
+{% block header %}プロジェクト一覧{% endblock %}
+{% block content %}
+    <table border="1">
+    <tr><th>プロジェクト略称</th><th>WBSデータ(JSON形式)のURL</th></tr>
+    {% for project in projects %}
+      <tr>
+         <td><a href="{{ url_for('project', projectname=project) }}">{{ project }}</a></td>
+         <td>{{request.scheme}}://{{request.host}}{{ url_for('project', projectname=project) }}</a></td>
+      </tr>
+    {% endfor %}
+    </table>
+    <p>このURLは、クライアントプログラムのサーバURLに設定してください。</p>
+    <p>サーバURLは、[設定]-[オプション]メニューで、オプション設定ダイアログを開くか、
+    settings.iniをテキストエディタで開いて、直接編集してください。</p>
+    <p>サーバにアクセスできない場合、PROXY経由のアクセスになっている場合があります。</p>
+    <p>その場合、HTTP_PROXY等の環境変数を削除するか、環境変数NO_PROXYに除外対象のサーバ名、IPアドレスを設定してください。</p>
+    <pre>
+    例）HTTP_PROXY=172.24.111.222:2000
+    　　　 <-- こういう設定があるとPROXY経由になってしまうので、
+        NO_PROXY=127.0.0.1, localhost, 172.24.160.99
+    　　　 <-- PROXY経由にしたくないものを設定します。
+    </pre>
+
+{% endblock %}

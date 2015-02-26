@@ -1,6 +1,7 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 
+import logging
 from PyQt4 import QtGui
 from PyQt4.QtGui import QAction, QWidget, QVBoxLayout, QMenuBar, QLabel
 from qtutil import App, MainWindow, createAction
@@ -13,16 +14,19 @@ from pmp.optiondialog import OptionDialog
 
 class GanttMainWindow(MainWindow):
     def __init__(self, parent=None):
+        path = "settings.ini"
         self._printHandler = None
         try:
-            _settings = Settings.load("settings.ini")
-        except:
+            _settings = Settings.load(path)
+        except Exception as e:
+            logging.warning("couldn't load '%s'" % path)
+            logging.debug(e)
             _settings = None
         if _settings is not None:
             settings.merge(_settings)
         super(GanttMainWindow, self).__init__(parent, APPLICATION_NAME)
         if _settings is None:
-            self.information("settings.iniが読めない(;_;)")
+            self.information("%sが読めない(;_;)" % path)
 
     def setup_gui(self):
         super(GanttMainWindow, self).setup_gui()
@@ -51,9 +55,10 @@ class GanttMainWindow(MainWindow):
     def createActions(self):
         super(GanttMainWindow, self).createActions()
         def dummy(action):
-            print("Action(%s)" % action.text())
+            logging.debug("Action(%s)" % action.text())
         gw = self.ganttWidget
         self.actions.open = createAction(gw.open, '開く', "Ctrl+O")
+        self.actions.openServer = createAction(gw.openServer, 'サーバから開く', "Ctrl+A")
         self.actions.save = createAction(gw.save, '上書き保存', "Ctrl+S")
         self.actions.saveAs = createAction(gw.saveAs, '名前をつけて保存')
         self.actions.insert = createAction(gw.insert, 'タスクを挿入', "Ctrl+Insert")
@@ -77,6 +82,7 @@ class GanttMainWindow(MainWindow):
         menuBar = self.menuBar()
         fileMenu = menuBar.addMenu("ファイル")
         fileMenu.addAction(self.actions.open)
+        fileMenu.addAction(self.actions.openServer)
         fileMenu.addAction(self.actions.save)
         fileMenu.addAction(self.actions.saveAs)
         fileMenu.addSeparator()
@@ -137,11 +143,18 @@ class GanttMainWindow(MainWindow):
         EvmDialog(APPLICATION_NAME, self).exec_()
 
 def exec():
+    logging.basicConfig(
+                level=logging.DEBUG,
+                format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                datefmt='%m-%d %H:%M:%S',
+                filename='~pmp.log',
+                )
+    logging.info('START')
     app = App()
     app.exec(GanttMainWindow)
-    print("Settings.dump:start")
     Settings.dump(settings, "settings.ini")
-    print("Settings.dump:end")
+    logging.info('END')
+    logging.shutdown()
 
 if __name__ == '__main__':
     exec()

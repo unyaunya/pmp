@@ -1,10 +1,13 @@
 #! python3
 # -*- coding: utf-8 -*-
 
+from logging import getLogger
 from PyQt4 import QtGui, QtCore
 from argparse import Namespace
 from .misc import createAction
 from .print import PrintHandler
+
+logger = getLogger('qtutil.mainwindow')
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None, applicationName="MyApp"):
@@ -63,9 +66,9 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QApplication.aboutQt()
 
     def quit(self):
-        print("quit called")
+        logger.debug("quit called")
         QtGui.QApplication.exit()
-        print("quit end")
+        logger.debug("quit end")
 
     #---------------------------------------------------------------------------
     #   staticmethod

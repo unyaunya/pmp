@@ -1,12 +1,15 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 
+from logging import getLogger
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QLabel, QColorDialog
 from PyQt4.QtCore import Qt
 from .misc import to_date
 from .namespace import Namespace
 from datetime import date, datetime
+
+logger = getLogger('qtutil.propertydialog')
 
 class NoEditItemDelegate(QtGui.QStyledItemDelegate):
     def __init__(self, parent=None):
@@ -163,7 +166,7 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         return super(TreeWidgetItem, self).data(column, role)
 
     def setData(self, column, role, value):
-        print(column, role, value, self.option.key)
+        #logger.debug(column, role, value, self.option.key)
         if column != 1:
             return
         if role == Qt.EditRole:
@@ -176,7 +179,7 @@ class TreeWidgetItem(QtGui.QTreeWidgetItem):
         else:
             return
         self.settings.setData(self.option.key, value)
-        print(self.settings)
+        logger.debug(self.settings)
 
     def getRawData(self):
         return self.settings.getData(self.option.key, self.option.defaultValue)

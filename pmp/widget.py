@@ -5,6 +5,7 @@ import os, sys
 
 from datetime import datetime as dt, timedelta
 from uuid import UUID
+from urllib.parse import urlparse
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt, QModelIndex, QPoint, QRect
 from PyQt4.QtGui import QBrush, QPen, QColor, QFontMetrics, QFileDialog
@@ -451,26 +452,31 @@ class GanttWidget(Widget_):
     def currentFileName(self):
         return self._currentFileName
 
-    def load(self, fileName):
+    def load(self, url):
         try:
-            self._workingDirectory = os.path.dirname(fileName)
-            self.ganttModel = TaskModel.load(fileName)
-            config.addLastUsed(fileName)
-            self._currentFileName = fileName
+            obj = urlparse(url)
+            if obj.netloc == '':
+                self._workingDirectory = os.path.dirname(url.path)
+            self.ganttModel = TaskModel.load(url)
+            config.addLastUsed(url)
+            self._currentFileName = url
             self.currentFileChanged.emit(self._currentFileName)
         except :
             print("Unexpected error:", sys.exc_info())
             QtGui.QMessageBox.warning(self,
-                "がんと", "<%s>を開けませんでした" % fileName, "OK")
+                "がんと", "<%s>を開けませんでした" % url, "OK")
             if DEBUG:
                 raise
+                #pass
 
-    def saveFile(self, fileName):
+    def saveFile(self, url):
         try:
-            print("save %s" % fileName)
-            self._workingDirectory = os.path.dirname(fileName)
-            TaskModel.dump(self.ganttModel, fileName)
-            self.load(fileName)
+            print("save %s" % url)
+            obj = urlparse(url)
+            if obj.netloc == '':
+                self._workingDirectory = os.path.dirname(url.path)
+            TaskModel.dump(self.ganttModel, url)
+            self.load(url)
             #self._currentFileName = fileName
             #self.currentFileChanged.emit(self._currentFileName)
         except:
@@ -479,7 +485,7 @@ class GanttWidget(Widget_):
             else:
                 print("Unexpected error:", sys.exc_info())
                 QtGui.QMessageBox.warning(self,
-                    "がんと", "<%s>を開けませんでした" % fileName, "OK")
+                    "がんと", "<%s>を開けませんでした" % url, "OK")
 
     def itemFromUuid(self, uuid):
         for i in range(self.topLevelItemCount()):
@@ -614,6 +620,11 @@ class GanttWidget(Widget_):
         if len(fileName) <= 0:
             return
         self.load(fileName)
+
+    def openServer(self, action):
+        """ファイルを開く"""
+        print(settings.misc.server_url)
+        self.load(settings.misc.server_url)
 
     def save(self, action):
         """ファイルを保存する"""

@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import json, codecs
+from logging import getLogger
 from datetime import date, datetime
 from qtutil import Namespace
 from qtutil import Property as _P
 from .serialize import to_json, from_json
 from PyQt4.QtGui import QPen, QColor, QBrush
+
+logger = getLogger('settings')
 
 class Settings(Namespace):
     KEY2IDX = ['name', 'start', 'end', 'pic', 'pv', 'ev', 'chart']
@@ -53,14 +56,19 @@ class Settings(Namespace):
 
     @staticmethod
     def dump(obj, path):
+        logger.info("start:dump(%s):" % path)
         with codecs.open(path, 'w', 'utf8') as f:
             #return
             json.dump(obj, f, indent=2, default=to_json, ensure_ascii=False)
+        logger.info("end  :dump(%s):" % path)
 
     @staticmethod
     def load(path):
+        logger.info("start:load(%s):" % path)
         with open(path, mode='r', encoding='utf-8') as f:
-            return json.load(f, object_hook=from_json)
+            rslt = json.load(f, object_hook=from_json)
+            logger.info("end  :load(%s):" % path)
+            return rslt
 
 
 settings = Settings()
@@ -187,6 +195,7 @@ settings.print.HEADER_WIDTH_RATIO       = 0.25  #ヘッダ幅の割合(=ヘッ�
 #その他の諸元
 #-------------------------------------------------------------------------------
 settings.misc.DATE_OF_PROGRESS_LINE = date.today()
+settings.misc.server_url = ''
 
 #-------------------------------------------------------------------------------
 #オプションダイアログ表示
@@ -217,5 +226,6 @@ dlgSpecs = [
     ],
     ['その他',
         _P('イナズマ線の日付', date, 'misc.DATE_OF_PROGRESS_LINE', date.today()),
+        _P('サーバURL', ｓｔｒ, 'misc.server_url', ''),
     ],
 ]

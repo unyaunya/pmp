@@ -1,0 +1,27 @@
+<!DOCTYPE html public "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    {% block head %}
+    <link rel="stylesheet" href="static/style.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>PMP - {% block title %}{% endblock %}</title>
+    {% endblock %}
+</head>
+<body>
+    <div id="header">{% block header %}{% endblock %}</div>
+    <div id="navi">
+        {% block navi %}
+        <ul>
+            <li><a href="/">トップ</a></li>
+            <li><a href="/install.html">インストール</a></li>
+            <li><a href="/project_list.html">プロジェクト一覧</a></li>
+        </ul>
+        {% endblock %}</div>
+    <div id="content">{% block content %}{% endblock %}</div>
+    <hr/>
+    <div id="footer">
+        {% block footer %}
+        {% endblock %}
+    </div>
+</body>
+</html>

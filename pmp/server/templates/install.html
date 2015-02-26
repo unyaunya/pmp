@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}インストールと起動方法{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block header %}インストールと起動方法{% endblock %}
+{% block content %}
+    <h2>【インストール】</h2>
+    <h3>32bit Windowsの場合</h3>
+    <p>工事中</p>
+
+    <h3>64bit Windowsの場合</h3>
+    <p>１．Pythonをインストールしてください。</p>
+        <a href="./static/downloads/64bit/python-3.3.5.amd64.msi">64bit用Pythonインストーラ</a>
+
+    <p>２．PyQtをインストールしてください。</p>
+        <a href="./static/downloads/64bit/PyQt4-4.10.4-gpl-Py3.3-Qt4.8.6-x64.exe">64bit用PyQtインストーラ</a>
+
+    <p>３．PMPモジュールのzipをダウンロードしてください。</p>
+        <a href="./static/downloads/pmp-master.zip">PMPモジュール</a>
+
+    <p>４．ダウンロードしたzipを任意のフォルダに解凍してください。</p>
+
+    <hr/>
+    <h2>【起動方法】</h2>
+
+    <pre>
+    方法１：
+      解凍したzipの中にある、pmp.pywをダブルクリックしてください。
+      (拡張子.pyw が、Python3と結びつけられていなければ動きません）
+
+    方法２：
+      ・解凍したzipのフォルダで、コマンドプロンプトを開きます。
+      ・コマンドプロンプトで、"python pmp.pyw"を実行してください。
+    </pre>
+{% endblock %}
+{% block footer %}
+    {{ super() }}
+{% endblock %}

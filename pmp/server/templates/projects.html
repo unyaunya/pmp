@@ -6,8 +6,8 @@
     <tr><th>プロジェクト略称</th><th>WBSデータ(JSON形式)のURL</th></tr>
     {% for project in projects %}
       <tr>
-         <td><a href="{{ url_for('project', projectname=project) }}">{{ project }}</a></td>
-         <td>{{request.scheme}}://{{request.host}}{{ url_for('project', projectname=project) }}</a></td>
+         <td><a href="{{ url_for('api_projects', projectname=project) }}">{{ project }}</a></td>
+         <td>{{request.scheme}}://{{request.host}}{{ url_for('api_projects', projectname=project) }}</a></td>
       </tr>
     {% endfor %}
     </table>

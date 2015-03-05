@@ -53,7 +53,8 @@ class TaskModel(Task):
     def dumpUrl(obj, url):
         print('Not Implemented')
         headers = {'User-Agent':'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'}
-        data = urlencode({'var': 123, 'foo':"wert"}).encode(encoding='utf-8')
+        jsonstr = json.dumps(obj, indent=2, default=_to_json, ensure_ascii=False)
+        data = urlencode({'data': jsonstr}).encode(encoding='utf-8')
         req = urllib.request.Request(url, data=data, headers=headers)
         rslt = _urlget(req)
 

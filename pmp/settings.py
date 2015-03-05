@@ -195,7 +195,9 @@ settings.print.HEADER_WIDTH_RATIO       = 0.25  #ヘッダ幅の割合(=ヘッ�
 #その他の諸元
 #-------------------------------------------------------------------------------
 settings.misc.DATE_OF_PROGRESS_LINE = date.today()
-settings.misc.server_url = ''
+settings.server.url = ''
+settings.server.userid = ''
+settings.server.password = ''
 
 #-------------------------------------------------------------------------------
 #オプションダイアログ表示
@@ -224,8 +226,12 @@ dlgSpecs = [
         _P('EV',     bool, 'column.ev.visible',   True),
         _P('チャート',bool, 'column.chart.visible',   True),
     ],
+    ['サーバ',
+        _P('URL', ｓｔｒ, 'server.url', ''),
+        _P('ユーザID', ｓｔｒ, 'server.userid', ''),
+        _P('パスワードユーザID', ｓｔｒ, 'server.password', ''),
+    ],
     ['その他',
         _P('イナズマ線の日付', date, 'misc.DATE_OF_PROGRESS_LINE', date.today()),
-        _P('サーバURL', ｓｔｒ, 'misc.server_url', ''),
     ],
 ]

@@ -456,7 +456,7 @@ class GanttWidget(Widget_):
         try:
             obj = urlparse(url)
             if obj.netloc == '':
-                self._workingDirectory = os.path.dirname(url.path)
+                self._workingDirectory = os.path.dirname(obj.path)
             self.ganttModel = TaskModel.load(url)
             config.addLastUsed(url)
             self._currentFileName = url

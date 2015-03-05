@@ -8,25 +8,49 @@
 {% endblock %}
 {% block header %}インストールと起動方法{% endblock %}
 {% block content %}
+    <style type="text/css"><!--
+    .unavailable {
+    text-decoration:line-through;
+    }
+    </style>
     <h2>【インストール】</h2>
-    <h3>32bit Windowsの場合</h3>
-    <p>工事中</p>
+    <p>次の手順でインストールしてください。</p>
+    <p>１．Pythonをインストールする。</p>
+        <ul>
+        <li>Windows64bit用
+            <ul>
+            <li><a href="./static/downloads/64bit/python-3.3.5.amd64.msi">Python3.3インストーラ(64bit用)</a></li>
+            </ul>
+        </li>
+        <li>Windows32bit用
+            <ul>
+            <li><a href="./static/downloads/32bit/python-3.3.5.msi">Python3.3インストーラ(32bit用)</a></li>
+            <li><a href="./static/downloads/32bit/python-3.4.3.msi">Python3.4インストーラ(32bit用)</a></li>
+            </ul>
+        </li>
+        </ul>
+    <p>２．PyQtをインストールする。(Pythonのバージョンに合わせたものを選んでください)</p>
+        <ul>
+        <li>Windows64bit用
+            <ul>
+            <li><a href="./static/downloads/64bit/PyQt4-4.10.4-gpl-Py3.3-Qt4.8.6-x64.exe">PyQtインストーラ(Python3.3-64bit用)</a></li>
+            </ul>
+        </li>
+        <li>Windows32bit用
+            <ul>
+            <li class=unavailable><a href="./static/downloads/32bit/PyQt4-4.11.3-gpl-Py3.3-Qt4.8.6-x32.exe">PyQtインストーラ(Python3.3-32bit用)</a></li>
+            <li><a href="./static/downloads/32bit/PyQt4-4.11.3-gpl-Py3.4-Qt4.8.6-x32.exe">PyQtインストーラ(Python3.4-32bit用)</a></li>
+            </ul>
+        </li>
+        </ul>
+    <p>３．PMPモジュールのzipをダウンロードする。</p>
+        <ul>
+        <li><a href="./static/downloads/pmp-master.zip">PMPモジュール</a></li>
+        </ul>
+    <p>４．ダウンロードしたzipを任意のフォルダに解凍する。</p>
+    <br/>
 
-    <h3>64bit Windowsの場合</h3>
-    <p>１．Pythonをインストールしてください。</p>
-        <a href="./static/downloads/64bit/python-3.3.5.amd64.msi">64bit用Pythonインストーラ</a>
-
-    <p>２．PyQtをインストールしてください。</p>
-        <a href="./static/downloads/64bit/PyQt4-4.10.4-gpl-Py3.3-Qt4.8.6-x64.exe">64bit用PyQtインストーラ</a>
-
-    <p>３．PMPモジュールのzipをダウンロードしてください。</p>
-        <a href="./static/downloads/pmp-master.zip">PMPモジュール</a>
-
-    <p>４．ダウンロードしたzipを任意のフォルダに解凍してください。</p>
-
-    <hr/>
     <h2>【起動方法】</h2>
-
     <pre>
     方法１：
       解凍したzipの中にある、pmp.pywをダブルクリックしてください。

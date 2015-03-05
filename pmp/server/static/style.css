@@ -1,5 +1,79 @@
-div#header {
-    color:#FFFFFF;
-    background:#330033;
+div.metanav {
     font-size:large;
+    float:right;
+}
+div.page {
+    width:1024px;
+    clear:both;
+}
+
+#header {
+    //color:#FFFFFF;
+    //background:#330033;
+    font-size:xx-large;
+    width:100%;
+}
+
+#sidebar {
+	width:200px;
+    float:left;
+}
+#content {
+    overflow: hidden;
+    width:700px;
+    float:left;
+}
+
+#footer{
+    clear:both;
+}
+
+
+#menu ul{
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+#menu li{
+	display: inline;
+	padding: 0;
+	margin: 0;
+	float: left;
+}
+#menu li a{
+	display: block;
+	border-left: 1px solid #474655;
+	border-top: 1px solid #474655;
+	border-bottom: 1px solid #474655;
+	background-color: #fff;
+	padding: 3px;
+	text-decoration: none;
+	color: #333;
+	width: 100px;
+	margin: 1px 0px;
+	text-align: center;
+	font-size: 14px;
+}
+#menu li a:hover{
+	border-left: 1px solid #474655;
+	border-top: 1px solid #474655;
+	border-bottom: 1px solid #474655;
+	background-color: #F3D898;
+}
+#menu #haji li a{
+	display: block;
+	border: 1px solid #474655;
+	background-color: #fff;
+	padding: padding: 3px 10px;;
+	text-decoration: none;
+	color: #333;
+	width: 100px;
+	margin: 1px 0px;
+	text-align: center;
+	font-size: 14px;
+}
+#menu #haji li a:hover{
+	display: block;
+	border: 1px solid #474655;
+	background-color: #F3D898;
 }

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}ユーザ一覧{% endblock %}
+{% block header %}ユーザ一覧{% endblock %}
+{% block content %}
+    <table border="1">
+    <tr><th>ユーザＩＤ</th><th>ユーザ名</th><th>e-mail</th><th>apiキー</th></tr>
+    {% for project in projects %}
+      <tr>
+         <td>ほげ</td>
+         <td>ほげ</td>
+         <td>ほげ</td>
+         <td>ほげ</td>
+      </tr>
+    {% endfor %}
+    </table>
+{% endblock %}

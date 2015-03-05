@@ -1,4 +1,4 @@
 #! python3
 # -*- coding: utf-8 -*-
 
-from .server import PmpServer
+from .server import PmpServer, init_db

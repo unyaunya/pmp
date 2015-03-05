@@ -8,20 +8,41 @@
     {% endblock %}
 </head>
 <body>
-    <div id="header">{% block header %}{% endblock %}</div>
-    <div id="navi">
-        {% block navi %}
-        <ul>
-            <li><a href="/">トップ</a></li>
-            <li><a href="/install.html">インストール</a></li>
-            <li><a href="/project_list.html">プロジェクト一覧</a></li>
-        </ul>
-        {% endblock %}</div>
-    <div id="content">{% block content %}{% endblock %}</div>
-    <hr/>
+<div class=metanav>
+    {% if not session.logged_in %}
+        <a href="{{ url_for('login') }}">log in</a>
+    {% else %}
+        <a href="{{ url_for('logout') }}">log out</a>
+    {% endif %}
+</div>
+<div class=page>
+    <div id="header">
+        {% block header %}{% endblock %}
+    </div>
+    <div id="sidebar">
+        <p>Table Of Contents</p>
+        <div id="menu">
+            {% block navi %}
+            <ul>
+                <li><a href="/">トップ</a></li>
+                <li><a href="/install.html">インストール</a></li>
+                <li><a href="/project_list.html">プロジェクト一覧</a></li>
+                <li><a href="/apikey.html">APIキー</a></li>
+                <li><a href="/users.html">ユーザ一覧</a></li>
+            </ul>
+            {% endblock %}
+        </div>
+    </div>
+    <div id="content">
+        {% for message in get_flashed_messages() %}
+        <div class=flash>{{ message }}</div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </div>
     <div id="footer">
         {% block footer %}
         {% endblock %}
     </div>
+</div>
 </body>
 </html>

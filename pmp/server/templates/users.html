@@ -2,14 +2,29 @@
 {% block title %}ユーザ一覧{% endblock %}
 {% block header %}ユーザ一覧{% endblock %}
 {% block content %}
+    {% if session.logged_in %}
+    <form action="{{ url_for('add_user') }}" method=post class=add-user>
+      <dl>
+        <dt>ID:
+        <dd><input type=text size=30 name=id>
+        <dt>password:
+        <dd><textarea name=passwd rows=5 cols=40></textarea>
+        <dt>e-mail:
+        <dd><input type=text size=30 name=email>
+        <dt>name:
+        <dd><input type=text size=30 name=name>
+        <dd><input type=submit value=OK>
+      </dl>
+    </form>
+    {% endif %}
+    <p>全{{users|length}}件：</p>
     <table border="1">
-    <tr><th>ユーザＩＤ</th><th>ユーザ名</th><th>e-mail</th><th>apiキー</th></tr>
-    {% for project in projects %}
+    <tr><th>ユーザＩＤ</th><th>e-mail</th><th>ユーザ名</th></tr>
+    {% for user in users %}
       <tr>
-         <td>ほげ</td>
-         <td>ほげ</td>
-         <td>ほげ</td>
-         <td>ほげ</td>
+         <td>{{user.id}}</td>
+         <td>{{user.email}}</td>
+         <td>{{user.name}}</td>
       </tr>
     {% endfor %}
     </table>

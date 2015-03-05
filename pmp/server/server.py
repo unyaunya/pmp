@@ -88,7 +88,21 @@ def project_list():
 
 @app.route('/users.html')
 def users():
-    return render_template('users.html')
+    cur = g.db.execute('select id, passwd, email, name, apikey from users order by id desc')
+    users = [dict(id=row[0], passwd=row[1], email=row[2], name=row[3],
+               apikey=row[4]) for row in cur.fetchall()]
+    return render_template('users.html', users=users)
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    if not session.get('logged_in'):
+        abort(401)
+    g.db.execute("insert into users (id, passwd, email, name, apikey) values (?, ?, ?, ?, '')",
+                 [request.form['id'], request.form['passwd'],
+                  request.form['email'], request.form['name']])
+    g.db.commit()
+    flash('New user was successfully posted')
+    return redirect(url_for('users'))
 
 #handle http request(Web API)
 @app.route('/pmp/api/projects/')

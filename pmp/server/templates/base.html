@@ -2,7 +2,7 @@
 <html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     {% block head %}
-    <link rel="stylesheet" href="static/style.css" />
+    <link rel="stylesheet" href="/static/style.css" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>PMP - {% block title %}{% endblock %}</title>
     {% endblock %}
@@ -29,6 +29,8 @@
                 <li><a href="/project_list.html">プロジェクト一覧</a></li>
                 <li><a href="/apikey.html">APIキー</a></li>
                 <li><a href="/users.html">ユーザ一覧</a></li>
+                {% block optionalmenu %}
+                {% endblock %}
             </ul>
             {% endblock %}
         </div>

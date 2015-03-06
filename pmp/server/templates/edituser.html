@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}ユーザ編集{% endblock %}
+{% block header %}ユーザ編集{% endblock %}
+{% block content %}
+    <form action="{{ url_for('edit_user', userid=user.id) }}" method=post class=edit-user>
+      <dl>
+        <dt>ID:</dt>
+        <dd>{{user.id}}</dd>
+        <dt>e-mail:</dt>
+        <dd><input type=text size=48 name=email value="{{user.email}}"/></dd>
+        <dt>name:</dt>
+        <dd><input type=text size=30 name=name value="{{user.name}}"/></dd>
+        <dt>admin:</dt>
+        <dd><input type=checkbox name=admin checked="{{user.admin}}"/></dd>
+        <dd><input type=submit value="OK"/></dd>
+      </dl>
+    </form>
+{% endblock %}

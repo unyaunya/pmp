@@ -31,12 +31,22 @@ def init_db():
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
 
+def get_user(userid):
+    cur = g.db.execute('select id, passwd, email, name, apikey, role from users where id = ?', [userid])
+    users = [dict(id=row[0], passwd=row[1], email=row[2], name=row[3],
+                apikey=row[4], role=row[5]) for row in cur.fetchall()]
+    if len(users) != 1:
+        return None
+    else:
+        return users[0]
+
 def projectsdir():
     return os.path.join(os.path.dirname(__file__), 'projects')
 
 @app.before_request
 def before_request():
     g.db = connect_db()
+    #g.user = get_user
 
 @app.teardown_request
 def teardown_request(exception):
@@ -54,6 +64,7 @@ def login():
             error = 'Invalid password'
         else:
             session['logged_in'] = True
+            session['userid'] = request.form['userid']
             flash('You were logged in')
             return redirect(url_for('index'))
     return render_template('login.html', error=error)
@@ -82,8 +93,6 @@ def show_apikey():
 @app.route('/project_list.html')
 def project_list():
     files = os.listdir(projectsdir())
-    #data = json.dumps(files, ensure_ascii=False)
-    #return data
     return render_template('projects.html', projects=files)
 
 @app.route('/users.html')
@@ -93,15 +102,38 @@ def users():
                apikey=row[4]) for row in cur.fetchall()]
     return render_template('users.html', users=users)
 
-@app.route('/add_user', methods=['POST'])
+@app.route('/add_user', methods=['GET', 'POST'])
 def add_user():
-    if not session.get('logged_in'):
-        abort(401)
-    g.db.execute("insert into users (id, passwd, email, name, apikey) values (?, ?, ?, ?, '')",
-                 [request.form['id'], request.form['passwd'],
-                  request.form['email'], request.form['name']])
-    g.db.commit()
-    flash('New user was successfully posted')
+    if request.method == 'GET':
+        return render_template('adduser.html')
+    elif request.method == 'POST':
+        if not session.get('logged_in'):
+            abort(401)
+        #print(request.form)
+        data = [request.form['id'],
+                request.form['passwd'],
+                request.form['email'],
+                request.form['name'],
+                'admin' if 'admin' in request.form else '']
+        #print(data)
+        g.db.execute("insert into users (id, passwd, email, name, apikey, role) values (?, ?, ?, ?, '', ?)", data)
+        g.db.commit()
+        flash('New user was successfully posted')
+        return redirect(url_for('add_user'))
+
+@app.route('/edit_user/<userid>', methods=['GET', 'POST'])
+def edit_user(userid):
+    if request.method == 'GET':
+        user = get_user(userid)
+        if user['role'] == 'admin':
+            user['admin'] = 'checked'
+        if user is not None:
+            return render_template('edituser.html', user=user)
+    elif request.method == 'POST':
+        return render_template('edituser.html')
+
+@app.route('/delete_user/<userid>', methods=['POST'])
+def delete_user(userid):
     return redirect(url_for('users'))
 
 #handle http request(Web API)

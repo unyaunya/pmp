@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}ユーザ追加{% endblock %}
+{% block header %}ユーザ追加{% endblock %}
+{% block content %}
+    {% if session.logged_in %}
+    <form action="{{ url_for('add_user') }}" method=post class=add-user>
+      <dl>
+        <dt>ID:
+        <dd><input type=text size=30 name=id>
+        <dt>password:
+        <dd><input type=password size=48 name=passwd></textarea>
+        <dt>e-mail:
+        <dd><input type=text size=48 name=email>
+        <dt>name:
+        <dd><input type=text size=30 name=name>
+        <dt>admin:
+        <dd><input type=checkbox name=admin>
+        <dd><input type=submit value=OK>
+      </dl>
+    </form>
+    {% endif %}
+{% endblock %}

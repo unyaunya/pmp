@@ -4,5 +4,6 @@ create table users (
   passwd string not null,
   email  string not null,
   name   string not null,
-  apikey string not null
+  apikey string not null,
+  role   string not null
 );

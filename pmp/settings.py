@@ -151,18 +151,18 @@ CHART_HEIGHT = 10
 PROGRESST_HEIGHT = 6
 
 CHART_BOUNDARY_COLOR    = (128,128,128,128) #チャート枠線色
-CHART_COLOR             = ( 64,128,128,255) #チャート塗潰し色
+CHART_COLOR             = ( 64,128,128,128) #チャート塗潰し色
 PROGRESS_COLOR          = (160, 64, 64,255) #チャート内の進捗率塗潰し色
-AGGREGATED_TASK_COLOR   = ( 64,128,255,255) #チャート塗潰し色
+AGGREGATED_TASK_COLOR   = ( 64,128,255,128) #チャート塗潰し色
 PROGRESS_LINE_COLOR     = (255,  0,  0,255) #イナズマ線色
 
 #-------------------------------------------------------------------------------
 #表示色
 #-------------------------------------------------------------------------------
 settings.color.boundary       = QColor(128,128,128,128) #チャート枠線色
-settings.color.chart          = QColor( 64,128,128,255) #チャート塗潰し色
+settings.color.chart          = QColor( 64,128,128,128) #チャート塗潰し色
 settings.color.progress       = QColor(160, 64, 64,255) #チャート内の進捗率塗潰し色
-settings.color.aggregatedTask = QColor( 64,128,255,255) #チャート塗潰し色
+settings.color.aggregatedTask = QColor( 64,128,255,128) #チャート塗潰し色
 settings.color.progressLine   = QColor(255,  0,  0,255) #イナズマ線色
 
 #-------------------------------------------------------------------------------

@@ -474,7 +474,7 @@ class GanttWidget(Widget_):
             print("save %s" % url)
             obj = urlparse(url)
             if obj.netloc == '':
-                self._workingDirectory = os.path.dirname(url.path)
+                self._workingDirectory = os.path.dirname(obj.path)
             TaskModel.dump(self.ganttModel, url)
             self.load(url)
             #self._currentFileName = fileName
@@ -497,7 +497,10 @@ class GanttWidget(Widget_):
 
     def insertAfter(self, item, newItem):
         (ci, index, parent, parentTask) = self._get_item_info(item)
-        parent.insertChild(index+1, newItem)
+        if parentTask == self.ganttModel:
+            parent.insertChild(index+1, newItem)
+        else:
+            parent.insertChild(index+1, newItem)
         parentTask.children.insert(index+1, newItem.task)
 
     #---------------------------------------------------------------------------
@@ -521,7 +524,7 @@ class GanttWidget(Widget_):
         if ci is None:
             parent = self.invisibleRootItem()
             parentTask = self.ganttModel
-            index = 0
+            index = -1
         elif self._isToplevel(ci):
             parent = self.invisibleRootItem()
             parentTask = self.ganttModel
@@ -629,7 +632,7 @@ class GanttWidget(Widget_):
     def save(self, action):
         """ファイルを保存する"""
         if self._currentFileName is None:
-            self.saveAs()
+            self.saveAs(action)
         else:
             self.saveFile(self._currentFileName)
 
@@ -637,6 +640,7 @@ class GanttWidget(Widget_):
         """ファイル名を指定して保存する"""
         fileName = QFileDialog.getSaveFileName(self,
                         'ファイルを保存する', self.workingDirectory)
+        print(fileName)
         if len(fileName) <= 0:
             return
         self.saveFile(fileName)

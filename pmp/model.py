@@ -40,7 +40,7 @@ class TaskModel(Task):
     def dump(obj, url):
         parsed_url = urlparse(url)
         if parsed_url.netloc == '':
-            return TaskModel.dumpFile(parsed_url.path)
+            return TaskModel.dumpFile(obj, parsed_url.path)
         else:
             return TaskModel.dumpUrl(obj, url)
 

@@ -497,11 +497,8 @@ class GanttWidget(Widget_):
 
     def insertAfter(self, item, newItem):
         (ci, index, parent, parentTask) = self._get_item_info(item)
-        if parentTask == self.ganttModel:
-            parent.insertChild(index+1, newItem)
-        else:
-            parent.insertChild(index+1, newItem)
         parentTask.children.insert(index+1, newItem.task)
+        parent.insertChild(index+1, newItem)
 
     #---------------------------------------------------------------------------
     #   アクション
